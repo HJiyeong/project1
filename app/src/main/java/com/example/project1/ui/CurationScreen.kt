@@ -5,18 +5,12 @@ import androidx.compose.foundation.Image
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material3.*
@@ -55,7 +49,7 @@ data class Question(
 data class Recommendation(val title: String, val description: String, val imageRes: Int)
 
 val recommendationList = listOf(
-    Recommendation("스타벅스", "공부하기 최적의 장소", R.drawable.img_cafe_sample),
+    Recommendation("스타벅스", "공부하기 최적의 장소", R.drawable.img_cafe_sample1),
     Recommendation("메이크어케이크", "브런치가 맛있는 곳", R.drawable.img_cafe_sample2),
     Recommendation("빽다방", "가성비 챙기세요~", R.drawable.img_cafe_sample3)
 )
@@ -248,7 +242,7 @@ fun CurationScreen(
                             )
 
                             val cafeList = listOf(
-                                CafeItem("XXXXXX카페", listOf("#공부하기 좋은", "#조용한", "#2층"), "13",R.drawable.img_cafe_sample),
+                                CafeItem("XXXXXX카페", listOf("#공부하기 좋은", "#조용한", "#2층"), "13",R.drawable.img_cafe_sample1),
                                 CafeItem("XXXXXX 카페", listOf("#디저트가 맛있는", "#감성있는", "#고양이가 있는"), "4",R.drawable.img_cafe_sample2),
                                 CafeItem("XXXXX 카페", listOf("#데이트 하기 좋은", "#아늑한", "#주차장 있는"), "0",R.drawable.img_cafe_sample3),
                                 CafeItem("XXXXXX 카페", listOf("#달달한 디저트", "#조용한", "#예쁜 조명"), "7",R.drawable.img_cafe_sample4),
@@ -446,7 +440,7 @@ fun HotNowScreen() {
                     Text("더 알아보기 ➔", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
                 }
                 Image(
-                    painter = painterResource(id = R.drawable.img_cafe_sample),
+                    painter = painterResource(id = R.drawable.img_cafe_sample1),
                     contentDescription = "Iced Coffee",
                     modifier = Modifier
                         .size(80.dp)

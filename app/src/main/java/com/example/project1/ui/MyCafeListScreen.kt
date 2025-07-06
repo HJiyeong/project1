@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,13 +33,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.MoreVert
+import com.example.project1.data.UserManager
 
 @Composable
 fun MyCafeListScreen(
     navController: NavHostController,
     modifier: Modifier = Modifier,
 ) {
+
+    val user = UserManager.currentUser ?: return
     var selectedTab by remember { mutableStateOf("내 카페리스트") }
     Scaffold(
         topBar = {
@@ -50,29 +52,7 @@ fun MyCafeListScreen(
             BottomTabs(navController = navController, selectedTab) { selectedTab = it }
         }
     ){ innerPadding ->
-
-        // test ?
-        val cafeSample = CafeInfo(
-            cid = "1",
-            name = "cafe1",
-            shortAddress = "대전 유성구 어은동",
-            imageURL = R.drawable.cafeimage_example
-        )
-        val cafeList = CafeList(
-            name = "study",
-            imageURL = R.drawable.cafeimage_example,
-            list = listOf(cafeSample, cafeSample, cafeSample, cafeSample, cafeSample)
-        )
-        val user = User(
-            uid = "1",
-            name = "우혁",
-            followers = emptyList(),
-            recommendation = listOf(cafeSample, cafeSample, cafeSample, cafeSample, cafeSample),
-            cafeLists = listOf(cafeList, cafeList, cafeList)
-        )
-
-
-        var expanded by remember { mutableStateOf(false) }
+        var expandedItemId by remember { mutableStateOf<Int?>(null) }
         Column(
             modifier = Modifier
                 .verticalScroll(rememberScrollState())
@@ -89,9 +69,10 @@ fun MyCafeListScreen(
                 Text(text = "내 카페리스트 페이지", fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.weight(1.0f))
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            user.cafeLists.forEach{ cafeList->
+            Spacer(modifier = Modifier.height(10.dp))
+            user.cafeLists.forEach{ cafeList ->
 
+                val isExpanded = expandedItemId == cafeList.cid
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -111,40 +92,42 @@ fun MyCafeListScreen(
                     Column(modifier = Modifier.weight(1.0f)) {
                         Text(text = cafeList.name, fontWeight = FontWeight.SemiBold)
                         Text(
-                            text = "${cafeList.list.size}개의 카페",
+                            text = "${cafeList.list?.size?: 0}개의 카페",
                             fontSize = 12.sp,
                             color = colorResource(R.color.gray)
                         )
                     }
                     Box {
-                        IconButton(onClick = { expanded = true }) {
+                        IconButton(onClick = {
+                            expandedItemId = if (isExpanded) null else cafeList.cid
+                        }) {
                             Icon(
-                                painter = painterResource(R.drawable.ic_leaf),
+                                imageVector = Icons.Filled.MoreVert,
                                 contentDescription = "More options"
                             )
                         }
                         DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
+                            expanded = isExpanded,
+                            onDismissRequest = { expandedItemId = null }
                         ) {
                             DropdownMenuItem(
                                 text = { Text("수정") },
                                 onClick = {
-                                    expanded = false
+                                    expandedItemId = cafeList.cid
                                     // TODO: 수정 처리
                                 }
                             )
                             DropdownMenuItem(
                                 text = { Text("이름 변경") },
                                 onClick = {
-                                    expanded = false
+                                    expandedItemId = cafeList.cid
                                     // TODO: 이름 변경 처리
                                 }
                             )
                             DropdownMenuItem(
                                 text = { Text("삭제") },
                                 onClick = {
-                                    expanded = false
+                                    expandedItemId = cafeList.cid
                                     // TODO: 삭제 처리
                                 }
                             )
@@ -153,6 +136,7 @@ fun MyCafeListScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(30.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -160,13 +144,16 @@ fun MyCafeListScreen(
             ){
                 Text(text = "내가 구독한 카페", fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             user.recommendation.forEach { cafeInfo ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
-                        .clickable { /* TODO: 상세보기로 이동 */ },
+                        .clickable(
+                            onClick = {
+                                navController.navigate("cafeinfo/${cafeInfo.cid}")
+                            }),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     AsyncImage(
@@ -177,7 +164,7 @@ fun MyCafeListScreen(
                             .size(60.dp)
                             .clip(RoundedCornerShape(8.dp))
                     )
-                    Spacer(Modifier.width(12.dp))
+                    Spacer(Modifier.width(10.dp))
                     Column {
                         Text(text = cafeInfo.name, fontWeight = FontWeight.SemiBold)
                         Text(text = cafeInfo.shortAddress, fontSize = 12.sp, color = colorResource(R.color.gray))

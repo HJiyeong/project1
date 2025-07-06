@@ -22,7 +22,7 @@ fun Profile(
     navController: NavHostController,
     modifier: Modifier = Modifier,
 ) {
-    var selectedTab by remember { mutableStateOf("내 카페리스트") }
+    var selectedTab by remember { mutableStateOf("") }
     Scaffold(
         topBar = {
             TopTabs(navController = navController) {}

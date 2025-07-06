@@ -9,7 +9,6 @@ import androidx.compose.material.icons.outlined.BookmarkBorder
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -22,7 +21,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
@@ -30,7 +28,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.example.project1.R
 import androidx.navigation.NavHostController
 
@@ -91,13 +88,13 @@ fun HomeScreen(navController: NavHostController,
 @Composable
 fun StorySection(navController: NavHostController) {
     val fortuneList = listOf(
-        FortuneCategory("재물운", "💰", "지출보다 절약에 집중하세요.", "가성비 카페 ‘슬기로운 커피생활’", R.drawable.img_cafe_sample, "cafe1"),
+        FortuneCategory("재물운", "💰", "지출보다 절약에 집중하세요.", "가성비 카페 ‘슬기로운 커피생활’", R.drawable.img_cafe_sample1, "cafe1"),
         FortuneCategory("애정운", "❤️", "마음을 전하기 좋은 날이에요.", "감성 가득 ‘달빛다방’", R.drawable.img_cafe_sample2, "cafe2"),
         FortuneCategory("건강운", "🧘", "허브차로 몸과 마음을 정화하세요.", "허브 힐링카페 ‘쉼표’", R.drawable.img_cafe_sample3, "cafe3"),
-        FortuneCategory("행운운", "🍀", "작은 행운이 당신 곁에 있어요.", "행운의 포춘카페 ‘럭키빈’", R.drawable.img_cafe_sample, "cafe4"),
+        FortuneCategory("행운운", "🍀", "작은 행운이 당신 곁에 있어요.", "행운의 포춘카페 ‘럭키빈’", R.drawable.img_cafe_sample1, "cafe4"),
         FortuneCategory("여행운", "✈️", "바람쐬기 좋은 날, 감성카페로 GO!", "테라스 좋은 ‘바람카페’", R.drawable.img_cafe_sample2, "cafe5"),
         FortuneCategory("집중운", "📚", "오늘의 몰입력 최상! 공부카페 추천", "스터디에 최적 ‘집중다방’", R.drawable.img_cafe_sample3, "cafe6"),
-        FortuneCategory("인간관계운", "🤝", "대화가 술술 풀리는 하루예요.", "분위기 좋은 ‘소셜카페’", R.drawable.img_cafe_sample, "cafe7"),
+        FortuneCategory("인간관계운", "🤝", "대화가 술술 풀리는 하루예요.", "분위기 좋은 ‘소셜카페’", R.drawable.img_cafe_sample1, "cafe7"),
         FortuneCategory("휴식운", "☕", "혼자만의 여유를 즐기기에 딱 좋아요.", "조용한 ‘무드카페’", R.drawable.img_cafe_sample2, "cafe8")
     )
 
@@ -190,7 +187,7 @@ fun FortunePopup(
 fun FeedList() {
     Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
         repeat(5) { index ->
-            FeedItem(userName = "user$index", imageRes = R.drawable.img_cafe_sample)
+            FeedItem(userName = "user$index", imageRes = R.drawable.img_cafe_sample1)
         }
     }
 }

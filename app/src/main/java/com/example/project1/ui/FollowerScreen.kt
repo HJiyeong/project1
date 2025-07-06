@@ -1,9 +1,9 @@
 package com.example.project1.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -25,10 +25,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.example.project1.R
+import com.example.project1.data.UserManager
 import com.example.project1.model.*
+
+import android.util.Log
 
 @Composable
 fun followerCafeCard(
+    navController: NavHostController,
     cafeInfo: CafeInfo
 ) {
     Card(
@@ -43,6 +47,10 @@ fun followerCafeCard(
             contentDescription = cafeInfo.name,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
+                .clickable(
+                    onClick = {
+                        navController.navigate("cafeinfo/${cafeInfo.cid}")
+                    })
         )
 
     }
@@ -54,24 +62,14 @@ fun FollowerScreen(
     modifier: Modifier = Modifier,
 ) {
     var selectedTab by remember { mutableStateOf("팔로워") }
-
-    // for testing
-    val cafeSample = CafeInfo(
-        cid = "1",
-        name = "cafe1",
-        imageURL = R.drawable.cafeimage_example
-    )
-    val userSample = User(
-        uid = "1",
-        name = "우혁",
-        recommendation = listOf(cafeSample, cafeSample, cafeSample, cafeSample),
-    )
-    val followers = listOf (
-        userSample, userSample, userSample, userSample, userSample
-   )
+    val user = UserManager.currentUser ?: return
+    Log.d("FollowerScreen", "Current user: $user")
+    val followers = user.followers
 
     Scaffold(
-        
+        topBar = {
+            TopTabs(navController = navController) {}
+        },
         bottomBar = {
             BottomTabs(navController = navController, selectedTab) { selectedTab = it }
         }
@@ -103,7 +101,7 @@ fun FollowerScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ){
                     user.recommendation.forEach { cafeInfo ->
-                        followerCafeCard(cafeInfo)
+                        followerCafeCard(navController, cafeInfo)
                     }
                 }
             }
