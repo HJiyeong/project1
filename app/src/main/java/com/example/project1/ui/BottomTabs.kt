@@ -25,9 +25,9 @@ import com.example.project1.R
 fun BottomTabs(navController: NavController, selected: String, onSelect: (String) -> Unit) {
     val tabs = listOf(
         Triple("Home", "home", painterResource(R.drawable.bottomtab_home)),
-        Triple("팔로워", "followers", painterResource(R.drawable.bottomtab_home)),
-        Triple("카페 큐레이션", "curation", painterResource(R.drawable.bottomtab_home)),
-        Triple("내 카페리스트", "mylist", painterResource(R.drawable.bottomtab_home))
+        Triple("팔로워", "followers", painterResource(R.drawable.ic_3)),
+        Triple("카페 큐레이션", "curation", painterResource(R.drawable.ic_info)),
+        Triple("내 카페리스트", "mylist", painterResource(R.drawable.ic_4))
     )
     Row(
         modifier = Modifier.fillMaxWidth()

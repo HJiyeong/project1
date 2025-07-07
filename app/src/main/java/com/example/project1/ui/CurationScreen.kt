@@ -193,6 +193,7 @@ fun CurationScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
+
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 listOf("전체 검색", "맞춤형", "요즘 핫한").forEach { label ->
@@ -260,6 +261,9 @@ fun CurationScreen(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
+                                        .clickable {
+                                            navController.navigate("cafeDetail")
+                                        }
                                         .padding(vertical = 8.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
@@ -439,7 +443,7 @@ fun HotNowScreen() {
                         fontSize = 18.sp,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
-                    Text("More info ➔", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
+                    Text("더 알아보기 ➔", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
                 }
                 Image(
                     painter = painterResource(id = R.drawable.img_cafe_sample),

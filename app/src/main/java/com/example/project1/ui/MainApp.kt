@@ -4,12 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.NavHostController
-
-import com.example.project1.ui.HomeScreen
-import com.example.project1.ui.FollowerScreen
-import com.example.project1.ui.CurationScreen
-import com.example.project1.ui.MyCafeListScreen
 
 @Composable
 fun MainApp() {
@@ -23,5 +17,12 @@ fun MainApp() {
         composable("setting") { Setting(navController) }
         composable("info") { Profile(navController) }
         composable("cafeinfo") { CafeInfo(navController) }
+        composable("cafeDetail") {
+            CafeDetailScreen(navController)
+        }
+
+
+
+
     }
 }
