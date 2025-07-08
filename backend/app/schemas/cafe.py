@@ -6,6 +6,8 @@ class CafeCreate(BaseModel):
     image_url: str | None = None
     short_address: str | None = None
 '''
+class PromptRequest(BaseModel):
+    prompt: str
 
 class CafeResponse(BaseModel):
     cafe_id: int

@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import func
 from app.db.db import get_db
 from app.models.user import User
+from app.models.cafe import Cafe
 from app.models.relations import followers_table
 from app.schemas.user import UserCreate, UserResponse
 from app.utils.auth import get_current_user
@@ -21,6 +22,10 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 @router.get("/", response_model=list[UserResponse])
 def get_users(db: Session = Depends(get_db)):
     return db.query(User).all()
+
+@router.get("/likes/{cafe_id}")
+def user_recommends_cafe(cafe_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return any(cafe.cafe_id == cafe_id for cafe in user.recommends)
 
 @router.get("/recommend")
 def recommend_users(n: int = 10, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -45,5 +50,16 @@ def follow_user(followee_id: int, follower: User = Depends(get_current_user), db
     follower.follows.append(followee)
     db.commit()
     return {"message": "following user", "followee_id": followee.user_id}
+
+@router.post("/{cafe_id}/followcafe")
+def follow_cafe(cafe_id: int, follower: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    cafe = db.query(Cafe).filter(Cafe.cafe_id == cafe_id).first()
+
+    if cafe not in follower.recommends:
+        follower.recommends.append(cafe)
+        db.commit()
+
+    return {"message": "following cafe", "cafe_id": cafe.cafe_id}
+
 
     

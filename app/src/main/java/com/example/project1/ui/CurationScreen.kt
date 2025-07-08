@@ -31,8 +31,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.project1.R
 import com.example.project1.model.CafeInfo
+import com.example.project1.model.PromptRequest
 import com.example.project1.network.RetrofitClient
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 data class CafeItem(
     val title: String,
@@ -154,6 +156,8 @@ fun CurationScreen(
     var selectedTab by remember { mutableStateOf("카페 큐레이션") }
     var selectedFilter by remember { mutableStateOf("전체 검색") }
     var searchText by remember { mutableStateOf("") }
+    var prompt by remember { mutableStateOf("") }
+    var promptResult by remember { mutableStateOf<List<CafeInfo>?>(null) }
 
     val beige = colorResource(R.color.beige)
     val brown = Color(0xFF7A4E2D)
@@ -230,6 +234,7 @@ fun CurationScreen(
                 when (selectedFilter) {
                     "전체 검색" -> {
                         Column {
+                            val coroutineScope = rememberCoroutineScope()
                             OutlinedTextField(
                                 value = searchText,
                                 onValueChange = { searchText = it },
@@ -240,7 +245,22 @@ fun CurationScreen(
                                 singleLine = true,
                                 shape = RoundedCornerShape(16.dp),
                                 trailingIcon = {
-                                    Icon(Icons.Default.Search, contentDescription = null)
+                                    Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier
+                                        .clickable(onClick = {
+                                            prompt =
+                                                """
+                                                검색 키워드 $searchText 를 바탕으로, 조건에 맞는 카페 상위 15개를 추천해 줘.
+                                                **답변은 무조건 네이버 지도 상에 실제 존재하는 카페 상호명을 기준으로,
+                                                "이름1, 이름2, 이름3, 이름4, ..." 와 같은 형식으로 출력해 줘.**
+                                                """
+                                            coroutineScope.launch {
+                                                promptResult = RetrofitClient.apiService.recommendCafes(PromptRequest(prompt))
+                                            }
+                                            val recommendedCafes = promptResult!!
+                                            recommendedCafes.forEach { cafe ->
+                                                // 이거 밑에 있는 카페 추천 결과랑 똑같이 띄우면 될 것 같아.
+                                            }
+                                        }))
                                 }
                             )
 
@@ -412,11 +432,11 @@ fun PersonalizedQuestionStack() {
         val prompt =
             """
                 사용자의 조건은 다음과 같아.
-               - 내가 찾으려는 카페는 : ${answers[0]} 주변에 있어야 해.
-               - 오늘의 내 예상 일정은 다음과 같아 : ${answers[1]}
-               - 오늘 날씨는 다음과 같아 : ${answers[2]}
-               - 오늘 나는 ${answers[4]} 와 함께 카페를 갈 예정이야.
-               - 기타 참고할 만한 상황은 다음과 같아 : ${answers[5]}
+               - 내가 찾으려는 카페는 : ${questionList[0]} 주변에 있어야 해.
+               - 오늘의 내 예상 일정은 다음과 같아 : ${questionList[1]}
+               - 오늘 날씨는 다음과 같아 : ${questionList[2]}
+               - 오늘 나는 ${questionList[4]} 와 함께 카페를 갈 예정이야.
+               - 기타 참고할 만한 상황은 다음과 같아 : ${questionList[5]}
                
                조건에 맞는 카페 상위 15개를 추천해 줘.
                **답변은 무조건 네이버 지도 상에 실제 존재하는 카페 상호명을 기준으로,
@@ -424,7 +444,7 @@ fun PersonalizedQuestionStack() {
             """
 
         LaunchedEffect(Unit) {
-            promptResult = RetrofitClient.apiService.recommendCafes(prompt)
+            promptResult = RetrofitClient.apiService.recommendCafes(PromptRequest(prompt))
         }
         val recommendedCafes = promptResult!!
         recommendedCafes.forEach { cafe ->

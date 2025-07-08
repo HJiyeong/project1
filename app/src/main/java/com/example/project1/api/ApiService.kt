@@ -8,6 +8,7 @@ import com.example.project1.model.UserCreateRequest
 import com.example.project1.model.UserCreateResponse
 import com.example.project1.model.LoginRequest
 import com.example.project1.model.LoginResponse
+import com.example.project1.model.PromptRequest
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -25,8 +26,18 @@ interface ApiService {
     @GET("cafes/{id}")
     suspend fun getCafeById(@Path("id") cafeId: Int): CafeInfo
 
-    @GET("cafes/recommend")
-    suspend fun recommendCafes(@Body prompt: String): List<CafeInfo>
+    @POST("cafes/recommend")
+    suspend fun recommendCafes(@Body prompt: PromptRequest): List<CafeInfo>
+
+    @GET("users/likes/{cafe_id}")
+    suspend fun isFollowingCafe(@Path("cafe_id") cid: Int, @Header("Authorization") authHeader: String): Boolean
+
+    @POST("users/{cafe_id}/followcafe")
+    suspend fun followCafe(@Path("cafe_id") cid: Int, @Header("Authorization") authHeader: String)
+            : Response<Unit>
+
+    @POST("cafes/hashtag")
+    suspend fun getHashTags(@Body prompt: PromptRequest): String
 
     @POST("auth/signup")
     suspend fun signup(@Body user: UserCreateRequest): UserCreateResponse

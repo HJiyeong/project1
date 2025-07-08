@@ -129,7 +129,7 @@ fun CafePlayListScreen(
                                 navController.navigate("cafeDetail/${cafe.cid}")
                             },
                         verticalAlignment = Alignment.CenterVertically
-                    ) {
+                        ) {
                         AsyncImage(
                             model = cafe.imageURL,
                             contentDescription = null,

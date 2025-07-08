@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from app.db.db import get_db
+from app.schemas.cafe import PromptRequest
 from app.models.cafe import Cafe
 from app.schemas.cafe import CafeResponse
-from app.utils.openai_client import get_cafe_recommendation
+from app.utils.openai_client import get_cafe_recommendation, get_cafe_hashtags
 
 router = APIRouter(prefix="/cafes", tags=["cafes"])
 
@@ -26,9 +27,10 @@ def get_cafe_by_id(cafe_id: int, db: Session = Depends(get_db)):
     cafe = db.query(Cafe).filter(Cafe.cafe_id == cafe_id).first()
     return cafe
 
-@router.get("/recommend", response_model=list[CafeResponse])
-def recommend_cafes(prompt: str, db: Session = Depends(get_db)):
-    prompt_result = [name.strip() for name in get_cafe_recommendation(prompt).split(",")]
+@router.post("/recommend", response_model=list[CafeResponse])
+def recommend_cafes(prompt: PromptRequest, db: Session = Depends(get_db)):
+    prompt_ = prompt.prompt
+    prompt_result = [name.strip() for name in get_cafe_recommendation(prompt_).split(",")]
     result = []
     for name in prompt_result:
         cafe = db.query(Cafe).filter(Cafe.name == name).first()
@@ -38,3 +40,7 @@ def recommend_cafes(prompt: str, db: Session = Depends(get_db)):
         if (len(result) == 10):
             break
     return result
+
+@router.post("/hashtag")
+def get_hashtag(prompt: PromptRequest):
+    return get_cafe_hashtags(prompt.prompt)
