@@ -4,8 +4,7 @@ from app.schemas.cafe import CafeResponse
 
 class CafeListCreate(BaseModel):
     name: str
-    image_url: str | None = None
-    user_id: str
+    user_id: int
 
 class CafeListResponse(BaseModel):
     list_id: int
@@ -17,5 +16,6 @@ class CafeListResponse(BaseModel):
     class Config:
         orm_mode = True
 
-class CafeAddRequest(BaseModel):
-    cafe_id: int
+class CafeChangeNameRequest(BaseModel):
+    list_id: int
+    name: str

@@ -1,25 +1,21 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.db.db import SessionLocal
+from app.db.db import get_db
 from app.models.cafe import Cafe
-from app.schemas.cafe import CafeCreate, CafeResponse
+from app.schemas.cafe import CafeResponse
+from app.utils.openai_client import get_cafe_recommendation
 
 router = APIRouter(prefix="/cafes", tags=["cafes"])
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-@router.post("/", response_model=CafeResponse) # 나중에 카페 직접 추가해야 되나???
+'''
+@router.post("/", response_model=CafeResponse)
 def create_cafe(cafe: CafeCreate, db: Session = Depends(get_db)):
     db_cafe = Cafe(name=cafe.name, image_url=cafe.image_url, short_address = cafe.short_address)
     db.add(db_cafe)
     db.commit()
     db.refresh(db_cafe)
     return db_cafe
+'''
 
 @router.get("/", response_model=list[CafeResponse])
 def get_cafes(db: Session = Depends(get_db)):
@@ -27,5 +23,18 @@ def get_cafes(db: Session = Depends(get_db)):
 
 @router.get("/{cafe_id}", response_model=CafeResponse)
 def get_cafe_by_id(cafe_id: int, db: Session = Depends(get_db)):
-    cafe = db.query(Cafe).filter(Cafe.id == cafe_id).first()
+    cafe = db.query(Cafe).filter(Cafe.cafe_id == cafe_id).first()
     return cafe
+
+@router.get("/recommend", response_model=list[CafeResponse])
+def recommend_cafes(prompt: str, db: Session = Depends(get_db)):
+    prompt_result = [name.strip() for name in get_cafe_recommendation(prompt).split(",")]
+    result = []
+    for name in prompt_result:
+        cafe = db.query(Cafe).filter(Cafe.name == name).first()
+        if not cafe:
+            continue
+        result.append(cafe)
+        if (len(result) == 10):
+            break
+    return result

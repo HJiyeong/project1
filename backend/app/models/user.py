@@ -1,3 +1,5 @@
+from datetime import datetime
+from xmlrpc.client import Boolean, DateTime
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 from app.db.db import Base
@@ -9,7 +11,15 @@ class User(Base):
 
     user_id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
+    profile_image = Column(String, nullable = True, default = None)
+
     cafe_lists = relationship("CafeList", back_populates="owner")
+    email = Column(String, unique=True, nullable=False)
+    hashed_password = Column(String)
+
+    # is_active = Column(Boolean, default=True)
+    # created_at = Column(DateTime, default=datetime.utcnow)
+
     recommends = relationship(
         "Cafe",
         secondary=recommendations_table,

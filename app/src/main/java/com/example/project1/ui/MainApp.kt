@@ -9,7 +9,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.project1.R
-import com.example.project1.data.UserManager
 import com.example.project1.model.CafeInfo
 import com.example.project1.network.RetrofitClient
 import androidx.compose.runtime.getValue
@@ -18,35 +17,32 @@ import androidx.compose.runtime.getValue
 fun MainApp() {
     val navController = rememberNavController()
 
-    LaunchedEffect(Unit) {
-        val users = RetrofitClient.apiService.getUsers()
-        UserManager.currentUser = users.firstOrNull() // 일단은 first dummy user 자동 로그인
-    }
-
-    NavHost(navController = navController, startDestination = "home") {
+    NavHost(navController = navController, startDestination = "login") {
+        composable("login") { LogInScreen(navController) }
+        composable("signup") { SignUpScreen(navController) }
         composable("home") { HomeScreen(navController) }
         composable("followers") { FollowerScreen(navController) }
         composable("curation") { CurationScreen(navController) }
         composable("mylist") { MyCafeListScreen(navController) }
         composable("setting") { Setting(navController) }
         composable("info") { Profile(navController) }
-        composable("cafeinfo/{cid}") { backStackEntry ->
-            val cid = backStackEntry.arguments?.getInt("cid")!!
+        composable("add_follower") { AddFollower(navController) }
+        composable("cafeDetail/{cid}") { backStackEntry ->
+            val cid = backStackEntry.arguments?.getString("cid")!!.toInt()
             var cafe by remember { mutableStateOf<CafeInfo?>(null) }
-
             LaunchedEffect(cid) {
                 cafe = RetrofitClient.apiService.getCafeById(cid)
             }
             cafe?.let { cafe ->
-                CafeInfo(cafe, navController)
+                CafeDetailScreen(navController, cafe)
             }
         }
-        composable("cafeDetail") {
-            CafeDetailScreen(navController)
+        composable("addcafetoplaylist/{cid}") { backStackEntry ->
+            val cid = backStackEntry.arguments?.getString("cid")!!.toInt()
+            AddCafeToListScreen(navController, cid) }
+        composable("cafePlayList/{cid}") { backStackEntry ->
+            val cid = backStackEntry.arguments?.getString("cid")!!.toInt()
+            CafePlayListScreen(navController, cid)
         }
-
-
-
-
     }
 }

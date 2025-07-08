@@ -5,5 +5,6 @@ data class CafeList (
     @SerializedName("list_id") val cid: Int,
     val name: String = "",
     @SerializedName("image_url") val imageURL: String = "",
+    @SerializedName("user_id") val uid: Int,
     @SerializedName("contains") val list: List<CafeInfo> = emptyList()
 )

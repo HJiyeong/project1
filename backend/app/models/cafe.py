@@ -10,6 +10,10 @@ class Cafe(Base):
     name = Column(String)
     image_url = Column(String)
     short_address = Column(String)
+    
+    cafe_url = Column(String)
+    cafe_introduce = Column(String)
+    amenities = Column(String)
 
     contains = relationship(
         "CafeList",

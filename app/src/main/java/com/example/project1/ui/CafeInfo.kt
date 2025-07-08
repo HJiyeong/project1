@@ -1,3 +1,4 @@
+/*
 package com.example.project1.ui
 
 import androidx.compose.foundation.background
@@ -71,3 +72,4 @@ fun CafeInfo(
         }
     }
 }
+ */

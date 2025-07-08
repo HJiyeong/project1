@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.project1.R
 
-@Composable
+@Composable // FIN
 fun BottomTabs(navController: NavController, selected: String, onSelect: (String) -> Unit) {
     val tabs = listOf(
         Triple("Home", "home", painterResource(R.drawable.bottomtab_home)),

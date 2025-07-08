@@ -30,7 +30,10 @@ def init_dummy_data():
         Cafe(
             name=cafe_names[i],
             image_url=f"{BASE_URL}/static/img_cafe_sample{i+1}.jpg",
-            short_address=cafe_addresses[i]
+            short_address=cafe_addresses[i],
+            cafe_url = "",
+            cafe_introduce = "",
+            amenities = ""
         )
         for i in range(8)
     ]
@@ -56,6 +59,7 @@ def init_dummy_data():
     db.flush()
 
     user_names = ["황지영", "신우혁", "A", "B"]
+    emails = ["a@a.com", "b@b.com", "c@c.com", "d@d.com"]
     cafe_list_indices = [
         [1,2,3], [2,4,5], [], []
     ]
@@ -67,7 +71,7 @@ def init_dummy_data():
     for i in range(4):
         lists = [cafe_lists[j-1] for j in cafe_list_indices[i]]
         recs = [cafes[j-1] for j in recommend_indices[i]]
-        u = User(name=user_names[i], cafe_lists=lists, recommends=recs)
+        u = User(name=user_names[i], email = emails[i], cafe_lists=lists, recommends=recs)
         users.append(u)
     db.add_all(users)
     db.flush()

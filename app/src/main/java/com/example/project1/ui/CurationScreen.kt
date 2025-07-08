@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -29,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.project1.R
+import com.example.project1.model.CafeInfo
+import com.example.project1.network.RetrofitClient
 import kotlinx.coroutines.delay
 
 data class CafeItem(
@@ -310,6 +313,7 @@ fun CurationScreen(
 @Composable
 fun PersonalizedQuestionStack() {
     val questionList = listOf(
+        Question("\uD83D\uDDFA\uFE0F", "어디살아요??????"),
         Question("😊", "오늘의 기분은 어떠세요?"),
         Question("☕", "오늘 뭐하실 예정이세요?"),
         Question("☁️", "오늘의 날씨는 어때요?"),
@@ -318,6 +322,7 @@ fun PersonalizedQuestionStack() {
     )
 
     val answers = remember { mutableStateListOf<String>() }
+    var promptResult by remember { mutableStateOf<List<CafeInfo>?>(null) }
 
     Column {
         for (i in questionList.indices) {
@@ -402,6 +407,28 @@ fun PersonalizedQuestionStack() {
                     }
                 }
             }
+        } // 대충 질문 받는 칸
+
+        val prompt =
+            """
+                사용자의 조건은 다음과 같아.
+               - 내가 찾으려는 카페는 : ${answers[0]} 주변에 있어야 해.
+               - 오늘의 내 예상 일정은 다음과 같아 : ${answers[1]}
+               - 오늘 날씨는 다음과 같아 : ${answers[2]}
+               - 오늘 나는 ${answers[4]} 와 함께 카페를 갈 예정이야.
+               - 기타 참고할 만한 상황은 다음과 같아 : ${answers[5]}
+               
+               조건에 맞는 카페 상위 15개를 추천해 줘.
+               **답변은 무조건 네이버 지도 상에 실제 존재하는 카페 상호명을 기준으로,
+               "이름1, 이름2, 이름3, 이름4, ..." 와 같은 형식으로 출력해 줘.**
+            """
+
+        LaunchedEffect(Unit) {
+            promptResult = RetrofitClient.apiService.recommendCafes(prompt)
+        }
+        val recommendedCafes = promptResult!!
+        recommendedCafes.forEach { cafe ->
+            // 대충 탭 안에다가 추천한 카페 리스트 띄우면 될 것 같음. 어떻게 할지는 모르겠음
         }
     }
 }

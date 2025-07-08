@@ -18,9 +18,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.navigation.NavHostController
 import com.example.project1.R
+import com.example.project1.model.CafeInfo
 
 @Composable
-fun CafeDetailScreen(navController: NavHostController) {
+fun CafeDetailScreen(
+    navController: NavHostController,
+    cafeInfo: CafeInfo
+) {
     var selectedTab by remember { mutableStateOf(0) }
 
     Box(
@@ -123,7 +127,7 @@ fun MenuView() {
         val menuImages = listOf(
             R.drawable.img_cafe_sample3,
             R.drawable.img_cafe_sample2,
-            R.drawable.img_cafe_sample
+            R.drawable.img_cafe_sample1
         )
 
         LazyColumn {
@@ -162,7 +166,7 @@ fun RelatedCafeView(navController: NavHostController) {
     val cafes = listOf(
         Triple("카페 산책", "대전시 유성구", R.drawable.img_cafe_sample3),
         Triple("무드 인 카페", "대전시 서구", R.drawable.img_cafe_sample2),
-        Triple("카페 모노톤", "대전시 동구", R.drawable.img_cafe_sample)
+        Triple("카페 모노톤", "대전시 동구", R.drawable.img_cafe_sample1)
     )
 
     LazyColumn {
