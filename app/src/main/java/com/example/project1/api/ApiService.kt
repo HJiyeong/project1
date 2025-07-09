@@ -61,9 +61,7 @@ interface ApiService {
     @POST("lists")
     suspend fun createCafeList(@Body list: ListCreateRequest): CafeList
 
-
-
-    @GET("lists/{list_id}")
+    @GET("lists/{list_id}/get_list")
     suspend fun getCafeListById(@Path("list_id") listId: Int): CafeList
 
     @GET("lists/{list_id}/get_candidates")

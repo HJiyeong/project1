@@ -26,8 +26,8 @@ def set_list_image_to_default(
     list_id: int,
     db: Session = Depends(get_db)
 ):
-    cafe_list = db.query(CafeList).filter(CafeList.id == list_id).first()
-    first_cafe = db.query(Cafe).filter(Cafe.list_id == list_id).order_by(Cafe.id).first()
+    cafe_list = db.query(CafeList).filter(CafeList.list_id == list_id).first()
+    first_cafe = db.query(Cafe).filter(Cafe.cafe_id == list_id).order_by(Cafe.cafe_id).first()
     cafe_list.image_url = first_cafe.image_url
     db.commit()
     db.refresh(cafe_list)
@@ -39,7 +39,7 @@ def set_list_image_to_default(
 def get_lists(user_id: int, db: Session = Depends(get_db)):
     return db.query(CafeList).filter(CafeList.user_id == user_id).all()
 
-@router.get("/{list_id}", response_model=CafeListResponse)
+@router.get("/{list_id}/get_list", response_model=CafeListResponse)
 def get_list_by_id(list_id: int, db: Session = Depends(get_db)):
     return db.query(CafeList).filter(CafeList.list_id == list_id).first()
 
@@ -60,26 +60,23 @@ def add_cafe_to_list(list_id: int, cafe_id: int = Body(...), db: Session = Depen
     if not cafe_list:
         return {"error": "CafeList not found"}
     
-    cafe = db.query(Cafe).filter(Cafe.id == cafe_id).first()
+    cafe = db.query(Cafe).filter(Cafe.cafe_id == cafe_id).first()
     if not cafe:
         return {"error": "Cafe not found"}
 
 
-    if cafe in cafe_list.cafes:
+    if cafe in cafe_list.contains:
         return {"message": "Cafe already in list"}
 
-    cafe_list.cafes.append(cafe)
+    cafe_list.contains.append(cafe)
     db.commit()
     return {"message": "Cafe added to list"}
-
-@router.get("/{user_id}", response_model=list[CafeListResponse])
-def get_lists(user_id: int, db: Session = Depends(get_db)):
-    return db.query(CafeList).filter(CafeList.user_id == user_id).all()
 
 @router.put("/change-name")
 def change_list_name(req: CafeChangeNameRequest = Body(...), db: Session = Depends(get_db)):
     cafe_list: CafeList = db.query(CafeList).filter(CafeList.list_id == req.list_id).first()
     cafe_list.name = req.name
+    print(req.name)
     db.commit()
     db.refresh(cafe_list)
     return cafe_list
