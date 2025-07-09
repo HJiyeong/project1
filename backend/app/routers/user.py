@@ -8,7 +8,7 @@ from app.models.cafe import Cafe
 from app.models.feed import Feed
 from app.models.relations import followers_table
 from app.schemas.user import UserCreate, UserResponse
-from app.schemas.cafe import FeedResponse
+from app.schemas.feed import FeedResponse
 from app.utils.auth import get_current_user
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -59,6 +59,9 @@ def follow_cafe(cafe_id: int, follower: User = Depends(get_current_user), db: Se
 
     if cafe not in follower.recommends:
         follower.recommends.append(cafe)
+        new_feed = Feed(user_id=follower.user_id, cafe_id=cafe.cafe_id, likes=0)
+        db.add(new_feed)
+
         db.commit()
 
     return {"message": "following cafe", "cafe_id": cafe.cafe_id}

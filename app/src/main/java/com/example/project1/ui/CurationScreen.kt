@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import coil.compose.rememberAsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
 import com.example.project1.R
 import com.example.project1.model.CafeInfo
 import com.example.project1.model.PromptRequest
@@ -308,7 +308,7 @@ fun CurationScreen(
 
                 "맞춤형" -> {
                     // TODO: 맞춤형 질문 리스트 표시
-                    PersonalizedQuestionStack()
+                    PersonalizedQuestionStack(navController)
                 }
 
                 "요즘 핫한" -> {

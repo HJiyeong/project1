@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Table, ForeignKey
+from sqlalchemy import Column, Integer, Table, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db.db import Base
@@ -14,7 +14,7 @@ class Feed(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     likes = Column(Integer)
-    
+
     comments = relationship("Comment", back_populates="feed", cascade="all, delete-orphan")
     user = relationship("User", back_populates="feeds")
     cafe = relationship("Cafe")

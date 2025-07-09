@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, ForeignKey
-from sqlalchemy.orm import relationship, String
+from sqlalchemy import Column, Integer, ForeignKey, String
+from sqlalchemy.orm import relationship
 from app.db.db import Base
 
 class Comment(Base):
@@ -9,5 +9,4 @@ class Comment(Base):
     feed_id = Column(Integer, ForeignKey("cafe_feeds.feed_id"))
     content = Column(String)
 
-    feed = relationship("Feed", back_populates="comments")
-    user = relationship("User")
+    feed = relationship("Feed", back_populates = "comments")
