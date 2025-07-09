@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import coil3.compose.AsyncImage
 import androidx.navigation.NavHostController
-import coil.request.ImageRequest
+import coil3.request.ImageRequest
 import coil3.compose.rememberAsyncImagePainter
 import com.example.project1.R
 import com.example.project1.model.CafeInfo
@@ -329,7 +329,7 @@ fun RelatedCafeView(navController: NavHostController, name: String) {
             ) {
                 Row(modifier = Modifier.padding(12.dp)) {
                     AsyncImage(
-                        model = cafe.imageURL,
+                        model = ImageRequest.Builder(LocalContext.current).data(cafe.imageURL),
                         contentDescription = null,
                         modifier = Modifier
                             .size(80.dp)

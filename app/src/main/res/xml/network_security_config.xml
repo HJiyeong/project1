@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
+<<<<<<< HEAD
     <domain-config cleartextTrafficPermitted="true">
         <domain>10.0.2.2</domain>
     </domain-config>
 </network-security-config>
+=======
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
+>>>>>>> 9ea577189afbba21e1af3a8c1bdc83eae12ab25d

@@ -34,6 +34,7 @@ import android.util.Log
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.LaunchedEffect
+import coil3.request.ImageRequest
 import com.example.project1.network.RetrofitClient
 import com.example.project1.utils.getToken
 
@@ -50,7 +51,10 @@ fun FollowerCafeCard(
             .height(140.dp)
     ){
         AsyncImage(
-            model = cafeInfo.imageURL,
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(cafeInfo.imageURL)
+                .build()
+            ,
             contentDescription = cafeInfo.name,
             contentScale = ContentScale.Crop,
             modifier = Modifier
