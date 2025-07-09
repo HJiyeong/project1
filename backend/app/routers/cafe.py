@@ -5,6 +5,8 @@ from app.schemas.cafe import PromptRequest
 from app.models.cafe import Cafe
 from app.schemas.cafe import CafeResponse
 from app.utils.openai_client import get_cafe_recommendation, get_cafe_hashtags
+from typing import List
+
 
 router = APIRouter(prefix="/cafes", tags=["cafes"])
 
@@ -30,19 +32,25 @@ def get_cafe_by_id(cafe_id: int, db: Session = Depends(get_db)):
     cafe = db.query(Cafe).filter(Cafe.cafe_id == cafe_id).first()
     return cafe
 
-@router.post("/recommend", response_model=list[CafeResponse])
+@router.post("/recommend", response_model=List[CafeResponse])  # List import도 위에 추가할 것!
 def recommend_cafes(prompt: PromptRequest, db: Session = Depends(get_db)):
-    prompt_ = prompt.prompt
-    prompt_result = [name.strip() for name in get_cafe_recommendation(prompt_).split(",")]
+    prompt_result = get_cafe_recommendation(prompt.prompt)
+    print("✅ 최종 추출된 이름 리스트:", prompt_result)
+
     result = []
     for name in prompt_result:
-        cafe = db.query(Cafe).filter(Cafe.name == name).first()
+        cafe = db.query(Cafe).filter(Cafe.name.ilike(f"%{name}%")).first()
         if not cafe:
+            print(f"❌ DB에 없는 이름: {name}")
             continue
         result.append(cafe)
-        if (len(result) == 10):
+        if len(result) == 40:  # ✅ 최대 40개로 증가
             break
+
     return result
+
+
+
 
 @router.post("/hashtag")
 def get_hashtag(prompt: PromptRequest):

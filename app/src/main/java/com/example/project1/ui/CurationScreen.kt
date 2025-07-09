@@ -160,6 +160,11 @@ fun CafeCard(
         endY = 600f
     )
 
+    LaunchedEffect(cafeInfo.imageURL) {
+        Log.d("CafeCard", "이미지 URL: ${cafeInfo.imageURL}")
+    }
+
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -323,7 +328,6 @@ fun CurationScreen(
 
 
 
-
 @Composable
 fun PersonalizedQuestionStack(navController: NavHostController) {
     val questionList = listOf(
@@ -341,10 +345,11 @@ fun PersonalizedQuestionStack(navController: NavHostController) {
     val coroutineScope = rememberCoroutineScope()
     var currentQuestionIndex by remember { mutableStateOf(0) }
     var input by remember { mutableStateOf("") }
+    var hasRequested by remember { mutableStateOf(false) } // ✅ 요청 여부 추적
 
     Column {
-        if (currentQuestionIndex < questionList.size) {
-            val question = questionList[currentQuestionIndex]
+        // ✅ 지금까지 질문을 누적해서 보여줌
+        questionList.subList(0, currentQuestionIndex + 1).forEachIndexed { index, question ->
             Card(
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
@@ -360,113 +365,187 @@ fun PersonalizedQuestionStack(navController: NavHostController) {
                             style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF5C3D2E))
                         )
                     }
-                    OutlinedTextField(
-                        value = input,
-                        onValueChange = { input = it },
-                        placeholder = { Text(question.hint) },
-                        singleLine = true,
-                        shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp)
-                    )
-                    Button(
-                        onClick = {
-                            if (input.isNotBlank()) {
-                                answers.add(input)
-                                input = ""
-                                if (currentQuestionIndex < questionList.size - 1) {
-                                    currentQuestionIndex++
-                                } else {
-                                    val prompt = """
-                                        사용자의 조건은 다음과 같아.
-                                       - 위치: ${answers.getOrNull(0) ?: "상관 없음"}
-                                       - 기분: ${answers.getOrNull(1) ?: "상관 없음"}
-                                       - 커피 종류: ${answers.getOrNull(2) ?: "상관 없음"}
-                                       - 디저트: ${answers.getOrNull(3) ?: "상관 없음"}
-                                       - 동반인: ${answers.getOrNull(4) ?: "상관 없음"}
-                                       - 분위기: ${answers.getOrNull(5) ?: "상관 없음"}
-                                       
-                                       조건에 맞는 카페 상위 15개를 추천해 줘.
-                                       **답변은 무조건 네이버 지도 상에 실제 존재하는 카페 상호명을 기준으로,
-                                       "이름1, 이름2, 이름3, 이름4, ..." 와 같은 형식으로 출력해 줘.**
-                                    """.trimIndent()
-                                    coroutineScope.launch {
-                                        isLoading = true
-                                        try {
-                                            promptResult = RetrofitClient.apiService.recommendCafes(PromptRequest(prompt))
-                                        } catch (e: Exception) {
-                                            Log.e("CurationScreen", "API Error", e)
-                                            promptResult = emptyList()
-                                        } finally {
-                                            isLoading = false
+
+                    // 현재 질문에만 입력창 표시
+                    if (index == currentQuestionIndex) {
+                        OutlinedTextField(
+                            value = input,
+                            onValueChange = { input = it },
+                            placeholder = { Text(question.hint) },
+                            singleLine = true,
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp)
+                        )
+
+                        Button(
+                            onClick = {
+                                if (input.isNotBlank()) {
+                                    answers.add(input)
+                                    input = ""
+
+                                    if (currentQuestionIndex < questionList.size - 1) {
+                                        currentQuestionIndex++
+                                    } else {
+                                        // ✅ GPT Prompt 생성 및 요청
+                                        val prompt = """
+                                            사용자의 조건은 다음과 같아.
+                                           - 위치: ${answers.getOrNull(0) ?: "상관 없음"}
+                                           - 기분: ${answers.getOrNull(1) ?: "상관 없음"}
+                                           - 커피 종류: ${answers.getOrNull(2) ?: "상관 없음"}
+                                           - 디저트: ${answers.getOrNull(3) ?: "상관 없음"}
+                                           - 동반인: ${answers.getOrNull(4) ?: "상관 없음"}
+                                           - 분위기: ${answers.getOrNull(5) ?: "상관 없음"}
+
+                                           조건에 맞는 카페 상위 15개를 추천해 줘.
+                                           **답변은 무조건 네이버 지도 상에 실제 존재하는 카페 상호명을 기준으로,
+                                           "이름1, 이름2, 이름3, ..." 와 같은 형식으로 출력해 줘. 또한 스타벅스는 꼭 포함해.**
+                                        """.trimIndent()
+
+                                        coroutineScope.launch {
+                                            isLoading = true
+                                            hasRequested = true
+                                            try {
+                                                promptResult = RetrofitClient.apiService.recommendCafes(PromptRequest(prompt))
+                                            } catch (e: Exception) {
+                                                Log.e("CurationScreen", "API Error", e)
+                                                promptResult = emptyList()
+                                            } finally {
+                                                isLoading = false
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        },
-                        modifier = Modifier
-                            .align(Alignment.End)
-                            .padding(top = 8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF834D1E), contentColor = Color.White)
-                    ) {
-                        Text(if (currentQuestionIndex < questionList.size - 1) "다음" else "결과 보기")
+                            },
+                            modifier = Modifier
+                                .align(Alignment.End)
+                                .padding(top = 8.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF834D1E),
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text(if (currentQuestionIndex < questionList.size - 1) "다음" else "결과 보기")
+                        }
+                    } else {
+                        // 입력한 답변 간단히 보여주기
+                        answers.getOrNull(index)?.let {
+                            Text(
+                                text = "➡️: $it",
+                                fontSize = 14.sp,
+                                color = Color.DarkGray,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                        }
                     }
                 }
             }
         }
 
+        // ✅ 결과 표시
         if (isLoading) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-        } else {
-            RecommendedCafeList(navController = navController, cafeList = promptResult)
+        } else if (promptResult != null) {
+            if (promptResult!!.isNotEmpty()) {
+                RecommendedCafeListByCid(navController, promptResult!!)
+            } else if (hasRequested) {
+                Text(
+                    "추천 결과가 없습니다 😢",
+                    color = Color.Gray,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
         }
     }
 }
 
+
 @Composable
-fun RecommendedCafeList(navController: NavHostController, cafeList: List<CafeInfo>?) {
+fun RecommendedCafeListByCid(
+    navController: NavHostController,
+    cafeList: List<CafeInfo>
+) {
     val brown = Color(0xFF7A4E2D)
-    cafeList?.forEach { cafe ->
-        Row(
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        Text(
+            text = "☕ 추천된 카페 리스트",
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+            color = brown,
+            modifier = Modifier.padding(16.dp)
+        )
+
+        LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { navController.navigate("cafeDetail/${cafe.cid}") }
-                .padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .weight(1f)  // ✅ 무한 높이 방지!
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.img_cafe_sample1), // Placeholder
-                contentDescription = cafe.name,
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(cafe.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text(text = cafe.shortAddress, fontSize = 12.sp, color = Color.DarkGray)
-            }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("N/A", fontSize = 12.sp, color = Color.DarkGray) // Placeholder
-                IconButton(onClick = { /* TODO: Implement save functionality */ }) {
-                    Icon(Icons.Rounded.BookmarkBorder, contentDescription = "Save", tint = brown)
+            items(cafeList) { cafe ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp, horizontal = 12.dp)
+                        .clickable {
+                            navController.navigate("cafeDetail/${cafe.cid}")
+                        },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFDF2E9))
+                ) {
+                    Row(modifier = Modifier.padding(12.dp)) {
+                        Image(
+                            painter = rememberAsyncImagePainter(cafe.imageURL),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(cafe.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            Text(
+                                text = cafe.shortAddress,
+                                fontSize = 12.sp,
+                                color = Color.DarkGray
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 }
 
+
 @Composable
 fun HotNowScreen() {
     val scrollState = rememberScrollState()
+    val viewModel: CafeListViewModel = viewModel()
+    val hotCafes by viewModel.hotNowCafes.collectAsState()
+
+    if (hotCafes.size < 9) {
+        // 로딩 처리 또는 빈 화면 처리
+        Text(
+            text = "카페 데이터를 불러오는 중입니다...",
+            modifier = Modifier.padding(16.dp),
+            color = Color.Gray
+        )
+        return
+    }
+
+    val top = hotCafes[0]
+    val recommendations = hotCafes.subList(1, 4)
+    val banner = hotCafes[4]
+    val listCards = hotCafes.subList(5, 9)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp)
     ) {
+        // 🟤 대표 카페
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0xFF834D1E)),
@@ -481,7 +560,7 @@ fun HotNowScreen() {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("이번 주, 가장 사랑받은 카페 🤍", color = Color.White, fontSize = 12.sp)
                     Text(
-                        "Iced Coffee\nSweet Heaven",
+                        top.name,
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
@@ -490,8 +569,8 @@ fun HotNowScreen() {
                     Text("더 알아보기 ➔", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
                 }
                 Image(
-                    painter = painterResource(id = R.drawable.img_cafe_sample1),
-                    contentDescription = "Iced Coffee",
+                    painter = rememberAsyncImagePainter(top.imageURL),
+                    contentDescription = top.name,
                     modifier = Modifier
                         .size(80.dp)
                         .clip(RoundedCornerShape(12.dp)),
@@ -500,6 +579,7 @@ fun HotNowScreen() {
             }
         }
 
+        // 🟤 추천 카드
         Text(
             "요즘 사람들이 찾는 카페는?",
             fontWeight = FontWeight.Bold,
@@ -507,12 +587,13 @@ fun HotNowScreen() {
             modifier = Modifier.padding(top = 24.dp, bottom = 8.dp)
         )
 
-        Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
-            recommendationList.forEach { item ->
-                RecommendationCard(item)
+        Row(modifier = Modifier.horizontalScroll(scrollState)) {
+            recommendations.forEach { cafe ->
+                RecommendationCardFromCafeInfo(cafe)
             }
         }
 
+        // 🟤 강조 이미지
         Text(
             "이런 공간, 요즘 좋아요",
             fontWeight = FontWeight.Bold,
@@ -526,13 +607,13 @@ fun HotNowScreen() {
                 .clip(RoundedCornerShape(16.dp))
         ) {
             Image(
-                painter = painterResource(id = R.drawable.img_cafe_sample3),
-                contentDescription = null,
+                painter = rememberAsyncImagePainter(banner.imageURL),
+                contentDescription = banner.name,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
             Text(
-                text = "카페 로제",
+                text = banner.name,
                 color = Color.White,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
@@ -542,6 +623,7 @@ fun HotNowScreen() {
             )
         }
 
+        // 🟤 리스트 카드
         Text(
             "요즘 뜨는 카페 리스트",
             fontWeight = FontWeight.Bold,
@@ -549,12 +631,12 @@ fun HotNowScreen() {
             modifier = Modifier.padding(top = 24.dp, bottom = 8.dp)
         )
 
-        Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
-            trendingCafeLists.forEach { item ->
-                CafeListCard(
-                    title = item.title,
-                    username = item.username,
-                    imageRes = item.imageRes
+        Row(modifier = Modifier.horizontalScroll(scrollState)) {
+            listCards.forEach { cafe ->
+                CafeListCardDynamic(
+                    title = cafe.name,
+                    username = "@인기카페러버",
+                    imageUrl = cafe.imageURL
                 )
             }
         }
@@ -562,7 +644,7 @@ fun HotNowScreen() {
 }
 
 @Composable
-fun CafeListCard(title: String, username: String, imageRes: Int) {
+fun CafeListCardDynamic(title: String, username: String, imageUrl: String) {
     Box(
         modifier = Modifier
             .padding(end = 12.dp)
@@ -571,7 +653,7 @@ fun CafeListCard(title: String, username: String, imageRes: Int) {
             .clip(RoundedCornerShape(16.dp))
     ) {
         Image(
-            painter = painterResource(id = imageRes),
+            painter = rememberAsyncImagePainter(imageUrl),
             contentDescription = title,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
@@ -601,6 +683,47 @@ fun CafeListCard(title: String, username: String, imageRes: Int) {
                 fontSize = 12.sp,
                 color = Color(0xFFFDF2E9)
             )
+        }
+    }
+}
+
+@Composable
+fun RecommendationCardFromCafeInfo(cafe: CafeInfo) {
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier
+            .padding(end = 8.dp)
+            .width(160.dp)
+            .height(220.dp)
+    ) {
+        Column {
+            Image(
+                painter = rememberAsyncImagePainter(cafe.imageURL),
+                contentDescription = cafe.name,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .height(120.dp)
+                    .fillMaxWidth()
+            )
+            Column(modifier = Modifier.padding(8.dp)) {
+                Text(cafe.name, fontWeight = FontWeight.Bold)
+                Text(cafe.shortAddress, fontSize = 12.sp, color = Color.Gray)
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Rounded.BookmarkBorder,
+                        contentDescription = "Scrap Icon",
+                        tint = Color(0xFF7A4E2D),
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "${(10..99).random()}",
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
         }
     }
 }
