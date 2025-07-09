@@ -113,7 +113,6 @@ fun Dialog(
                                     ListChangeNameRequest(name = input, cid = id)
                                 )
                                 onDismiss
-                                navController.navigate("mylist")
                             }
                         }
                     },
@@ -270,7 +269,6 @@ fun MyCafeListScreen(
                                             coroutineScope.launch {
                                                 RetrofitClient.apiService.deleteList(cafeList.cid)
                                             }
-                                            navController.navigate("mylist")
                                         }
                                     )
                                 }

@@ -35,22 +35,17 @@ import com.example.project1.network.RetrofitClient
 import kotlinx.coroutines.launch
 
 
-@Composable
+@Composable // FIN?
 fun AddCafeToListScreen(
     navController: NavHostController,
     cid: Int,
 ) {
-    var candidateList by remember { mutableStateOf<List<CafeInfo>?>(null) }
-
+    var candidateList by remember { mutableStateOf<List<CafeInfo>?>(null)}
     LaunchedEffect(Unit) {
         candidateList = RetrofitClient.apiService.getCafeCandidates(cid)
     }
-
-    // candidateList 로딩 중이면 아무것도 안 띄움 (또는 로딩 UI 넣어도 됨)
-    val cafeList = candidateList ?: return
-
+    val cafeList = candidateList!!
     var selectedIds by remember { mutableStateOf(setOf<Int>()) }
-    val coroutineScope = rememberCoroutineScope()
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -119,6 +114,7 @@ fun AddCafeToListScreen(
                 }
             }
 
+            val coroutineScope = rememberCoroutineScope()
             if (selectedIds.isNotEmpty()) {
                 Box(
                     modifier = Modifier
@@ -129,12 +125,12 @@ fun AddCafeToListScreen(
                 ) {
                     Button(
                         onClick = {
-                            coroutineScope.launch {
-                                selectedIds.forEach { id ->
+                            selectedIds.forEach {id ->
+                                coroutineScope.launch {
                                     RetrofitClient.apiService.addCafes(cid, id)
                                 }
-                                navController.navigate("mylist")
                             }
+                            navController.navigate("mylist")
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.brown))

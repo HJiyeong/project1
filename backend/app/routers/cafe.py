@@ -27,8 +27,7 @@ def get_cafes(db: Session = Depends(get_db)):
 
 @router.get("/{cafe_id}", response_model=CafeResponse)
 def get_cafe_by_id(cafe_id: int, db: Session = Depends(get_db)):
-    cafe: CafeResponse = db.query(Cafe).filter(Cafe.cafe_id == cafe_id).first()
-    print(cafe.image_url)
+    cafe = db.query(Cafe).filter(Cafe.cafe_id == cafe_id).first()
     return cafe
 
 @router.post("/recommend", response_model=list[CafeResponse])

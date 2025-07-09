@@ -13,7 +13,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -69,119 +68,86 @@ fun CafePlayListScreen(
     cid: Int
 ) {
     var selectedList by remember { mutableStateOf<CafeList?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
-
-    LaunchedEffect(cid) {
-        isLoading = true
-        try {
-            selectedList = RetrofitClient.apiService.getCafeListById(cid)
-        } catch (e: Exception) {
-            // Handle error, e.g., show a toast or a message
-        } finally {
-            isLoading = false
-        }
+    LaunchedEffect(Unit) {
+        selectedList = RetrofitClient.apiService.getCafeListById(cid)
     }
+    val cafeList = selectedList!!
 
     Scaffold(
-        topBar = {
-            CafeListTopBar(navController, selectedList?.name ?: "로딩 중...")
-        }
+        topBar = { CafeListTopBar(navController, cafeList.name) }
     ) { innerPadding ->
-        if (isLoading) {
-            Box(
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .background(colorResource(R.color.beige))
+                .padding(innerPadding)
+                .padding(24.dp),
+        ) {
+            AsyncImage(
+                model = cafeList.imageURL,
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .padding(horizontal = 20.dp)
+                    .clip(RoundedCornerShape(12.dp))
+            )
+            Text(
+                text = cafeList.name,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp)
+                    .align(Alignment.CenterHorizontally),
+                textAlign = TextAlign.Center,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "${cafeList.list.size}개의 카페",
+                modifier = Modifier.padding(horizontal = 20.dp),
+                fontSize = 16.sp,
+                color = colorResource(R.color.gray)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
+                    .padding(horizontal = 20.dp)
             ) {
-                CircularProgressIndicator()
-            }
-        } else if (selectedList != null) {
-            selectedList?.let { cafeList ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .background(colorResource(R.color.beige))
-                        .padding(innerPadding)
-                        .padding(24.dp),
-                ) {
-                    AsyncImage(
-                        model = cafeList.imageURL,
-                        contentDescription = null,
+                cafeList.list.forEach { cafe ->
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .aspectRatio(1f)
-                            .padding(horizontal = 20.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                    )
-
-                    Text(
-                        text = cafeList.name,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 12.dp)
-                            .align(Alignment.CenterHorizontally),
-                        textAlign = TextAlign.Center,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Text(
-                        text = "${cafeList.list?.size ?: 0}개의 카페",
-                        modifier = Modifier.padding(horizontal = 20.dp),
-                        fontSize = 16.sp,
-                        color = colorResource(R.color.gray)
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 20.dp)
-                    ) {
-                        cafeList.list?.forEach { cafe -> // ✅ null-safe 처리
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 12.dp)
-                                    .clickable {
-                                        navController.navigate("cafeDetail/${cafe.cid}")
-                                    },
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                AsyncImage(
-                                    model = cafe.imageURL,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(60.dp)
-                                        .clip(RoundedCornerShape(8.dp))
-                                )
-                                Spacer(Modifier.width(12.dp))
-                                Column {
-                                    Text(text = cafe.name, fontWeight = FontWeight.SemiBold)
-                                    Text(
-                                        text = cafe.shortAddress,
-                                        fontSize = 12.sp,
-                                        color = colorResource(R.color.gray)
-                                    )
-                                }
-                            }
+                            .padding(vertical = 12.dp)
+                            .clickable {
+                                navController.navigate("cafeDetail/${cafe.cid}")
+                            },
+                        verticalAlignment = Alignment.CenterVertically
+                        ) {
+                        AsyncImage(
+                            model = cafe.imageURL,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(60.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Column {
+                            Text(text = cafe.name, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                text = cafe.shortAddress,
+                                fontSize = 12.sp,
+                                color = colorResource(R.color.gray)
+                            )
                         }
                     }
                 }
-            }
-        } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("리스트를 불러오는데 실패했습니다.")
             }
         }
     }
