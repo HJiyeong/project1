@@ -1,0 +1,34 @@
+.
+├── app
+│   ├── build.gradle.kts
+│   ├── proguard-rules.pro
+│   └── src
+│       ├── androidTest
+│       ├── main
+│       └── test
+├── backend
+│   └── app
+│       ├── __pycache__
+│       ├── db
+│       ├── init_cafe_info.py
+│       ├── init_dummy_data.py
+│       ├── main.py
+│       ├── models
+│       ├── routers
+│       ├── schemas
+│       ├── static
+│       └── utils
+├── build.gradle.kts
+├── gradle
+│   ├── libs.versions.toml
+│   └── wrapper
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradle.properties
+├── gradlew
+├── gradlew.bat
+├── local.properties
+├── project_structure.txt
+└── settings.gradle.kts
+
+17 directories, 15 files

@@ -22,3 +22,4 @@ backend/.pytest_cache/
 backend/app/utils/openai_client.py
 backend/app/utils/__pycache__/
 
+.env
