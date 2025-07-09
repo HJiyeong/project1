@@ -48,3 +48,7 @@ def recommend_cafes(prompt: PromptRequest, db: Session = Depends(get_db)):
 def get_hashtag(prompt: PromptRequest):
     return get_cafe_hashtags(prompt.prompt)
 
+@router.get("/default", response_model=list[CafeResponse])
+def get_default_cafes(db: Session = Depends(get_db)):
+    return db.query(Cafe).limit(20).all()
+

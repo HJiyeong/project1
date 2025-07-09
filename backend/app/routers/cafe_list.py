@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Body
 from sqlalchemy.orm import Session
 from app.db.db import get_db
 from app.models.user import User
@@ -10,7 +10,7 @@ from app.schemas.cafe_list import CafeListCreate, CafeListResponse, CafeChangeNa
 router = APIRouter(prefix="/lists", tags=["lists"])
 
 @router.post("/", response_model=CafeListResponse)
-def create_list(cafe_list: CafeListCreate, db: Session = Depends(get_db)):
+def create_list(cafe_list: CafeListCreate = Body(...), db: Session = Depends(get_db)):
     db_list = CafeList(
         name=cafe_list.name,
         image_url="",
@@ -55,12 +55,12 @@ def get_cafe_candidates(list_id: int, db: Session = Depends(get_db)):
     return candidates
 
 @router.post("/{list_id}/add_cafe")
-def add_cafe_to_list(list_id: int, req: int, db: Session = Depends(get_db)):
+def add_cafe_to_list(list_id: int, cafe_id: int = Body(...), db: Session = Depends(get_db)):
     cafe_list = db.query(CafeList).filter(CafeList.list_id == list_id).first()
     if not cafe_list:
         return {"error": "CafeList not found"}
     
-    cafe = db.query(Cafe).filter(Cafe.id == req.cafe_id).first()
+    cafe = db.query(Cafe).filter(Cafe.id == cafe_id).first()
     if not cafe:
         return {"error": "Cafe not found"}
 
@@ -77,7 +77,7 @@ def get_lists(user_id: int, db: Session = Depends(get_db)):
     return db.query(CafeList).filter(CafeList.user_id == user_id).all()
 
 @router.put("/change-name")
-def change_list_name(req: CafeChangeNameRequest, db: Session = Depends(get_db)):
+def change_list_name(req: CafeChangeNameRequest = Body(...), db: Session = Depends(get_db)):
     cafe_list: CafeList = db.query(CafeList).filter(CafeList.list_id == req.list_id).first()
     cafe_list.name = req.name
     db.commit()

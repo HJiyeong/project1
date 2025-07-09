@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.sql.expression import func
 from app.db.db import get_db
 from app.models.user import User
 from app.models.cafe import Cafe
+from app.models.feed import Feed
 from app.models.relations import followers_table
 from app.schemas.user import UserCreate, UserResponse
+from app.schemas.cafe import FeedResponse
 from app.utils.auth import get_current_user
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -61,5 +63,17 @@ def follow_cafe(cafe_id: int, follower: User = Depends(get_current_user), db: Se
 
     return {"message": "following cafe", "cafe_id": cafe.cafe_id}
 
-
+@router.get("/feeds", response_model=list[FeedResponse])
+def show_feeds(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    follower_ids = [follower.user_id for follower in user.followers]
     
+    feeds = (
+        db.query(Feed)
+        .options(joinedload(Feed.user), joinedload(Feed.cafe))
+        .filter(Feed.user_id.in_(follower_ids))
+        .order_by(Feed.created_at.desc())
+        .limit(10)
+        .all()
+    )
+
+    return feeds

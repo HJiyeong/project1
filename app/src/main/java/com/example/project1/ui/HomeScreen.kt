@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -30,6 +31,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.project1.R
 import androidx.navigation.NavHostController
+import coil3.compose.AsyncImage
+import com.example.project1.model.FeedResponse
+import com.example.project1.network.RetrofitClient
+import com.example.project1.utils.getToken
+import kotlinx.coroutines.launch
 
 
 data class FortuneCategory(
@@ -48,7 +54,11 @@ fun HomeScreen(navController: NavHostController,
                modifier: Modifier = Modifier,
                userName: String = "지영") {
     var selectedTab by remember { mutableStateOf("Home") }
-
+    val token = getToken(LocalContext.current)
+    var feeds by remember { mutableStateOf<List<FeedResponse>?>(null) }
+    LaunchedEffect(Unit) {
+        feeds = RetrofitClient.apiService.getFeeds(token)
+    }
 
     Scaffold(
         topBar = {
@@ -78,7 +88,7 @@ fun HomeScreen(navController: NavHostController,
             )
             StorySection(navController = navController)
             Spacer(modifier = Modifier.height(24.dp))
-            FeedList()
+            feeds?.let { FeedList(it) }
         }
     }
 }
@@ -184,29 +194,48 @@ fun FortunePopup(
 
 
 @Composable
-fun FeedList() {
-    Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
-        repeat(5) { index ->
-            FeedItem(userName = "user$index", imageRes = R.drawable.img_cafe_sample1)
+fun FeedList(feeds: List<FeedResponse>) {
+    feeds.forEach {feed ->
+        Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
+            FeedItem(feed)
         }
     }
 }
+
 @Composable
-fun FeedItem(userName: String, imageRes: Int) {
+fun FeedItem(feed: FeedResponse) {
+    val userName = feed.user.name
+    val imageURL = feed.cafe.imageURL
     val liked = remember { mutableStateOf(false) }
-    var likeCount by remember { mutableStateOf(12) }
+    var likeCount by remember { mutableStateOf(feed.likes) }
 
     var saved by remember { mutableStateOf(false) }
     var saveCount by remember { mutableStateOf(3) }
 
     val showComments = remember { mutableStateOf(false) }
-    val comments = remember { mutableStateListOf("너무 좋아요!", "여기 어디예요?") }
+    val comments = remember { mutableStateListOf<String>() }
     var commentText by remember { mutableStateOf("") }
 
+    val coroutineScope = rememberCoroutineScope()
+
+    // 댓글 fetch
+    LaunchedEffect(showComments.value) {
+        if (showComments.value && comments.isEmpty()) {
+            coroutineScope.launch {
+                try {
+                    val result = RetrofitClient.apiService.getComments(feed.fid)
+                    comments.clear()
+                    comments.addAll(result)
+                } catch (e: Exception) {
+                    // 에러 처리 필요시 로그 출력 등
+                }
+            }
+        }
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
 
-        //이름
+        // 유저 정보
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -223,9 +252,9 @@ fun FeedItem(userName: String, imageRes: Int) {
             Text(userName, fontWeight = FontWeight.Bold)
         }
 
-        // 사진
-        Image(
-            painter = painterResource(id = imageRes),
+        // 이미지
+        AsyncImage(
+            model = imageURL,
             contentDescription = null,
             modifier = Modifier
                 .fillMaxWidth()
@@ -233,7 +262,7 @@ fun FeedItem(userName: String, imageRes: Int) {
             contentScale = ContentScale.Crop
         )
 
-        // 아이콘 (좋아요, 댓글, 저장)
+        // 아이콘들
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -241,18 +270,23 @@ fun FeedItem(userName: String, imageRes: Int) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Icon(imageVector = if (liked.value) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                Icon(
+                    imageVector = if (liked.value) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                     contentDescription = "좋아요",
                     tint = if (liked.value) Color.Red else Color.Black,
-                    modifier = Modifier.clickable { liked.value = !liked.value
+                    modifier = Modifier.clickable {
+                        liked.value = !liked.value
                         likeCount += if (liked.value) 1 else -1
+
                     }
                 )
-                Icon(imageVector = Icons.Outlined.ChatBubbleOutline,
+                Icon(
+                    imageVector = Icons.Outlined.ChatBubbleOutline,
                     contentDescription = "댓글",
                     modifier = Modifier.clickable {
                         showComments.value = !showComments.value
-                    })
+                    }
+                )
             }
             Icon(
                 imageVector = if (saved) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
@@ -261,27 +295,30 @@ fun FeedItem(userName: String, imageRes: Int) {
                 modifier = Modifier.clickable {
                     saved = !saved
                     saveCount += if (saved) 1 else -1
+                    coroutineScope.launch {
+                        RetrofitClient.apiService.likeFeed(feed.fid, saved)
+                    }
                 }
             )
-
         }
 
+        // 좋아요/댓글/저장 수
         Column(modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)) {
             Text("❤️ $likeCount 명", fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Text("💬 댓글 ${comments.size}개", fontSize = 13.sp, color = Color.Gray)
             Text("📌 저장 $saveCount 회", fontSize = 13.sp, color = Color.Gray)
         }
 
+        // 설명
         Text(
             text = "$userName 님이 카페를 추가했어요.",
             modifier = Modifier.padding(horizontal = 16.dp),
             fontSize = 14.sp
         )
 
-        //댓글창
+        // 댓글 UI
         if (showComments.value) {
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-
                 comments.forEach { comment ->
                     Text("💬 $comment", fontSize = 13.sp, color = Color.DarkGray)
                     Spacer(modifier = Modifier.height(4.dp))
@@ -313,8 +350,6 @@ fun FeedItem(userName: String, imageRes: Int) {
         }
     }
 }
-
-
 
 
 

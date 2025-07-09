@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from app.schemas.user import UserResponse
 
 '''
 class CafeCreate(BaseModel):
@@ -18,6 +19,15 @@ class CafeResponse(BaseModel):
     cafe_url: str | None = None
     cafe_introduce: str | None = None
     amenities: str | None = None
+
+    class Config:
+        orm_mode = True
+
+class FeedResponse(BaseModel):
+    feed_id: int
+    user: UserResponse
+    cafe: CafeResponse
+    likes: int
 
     class Config:
         orm_mode = True

@@ -33,3 +33,5 @@ class User(Base):
         secondaryjoin=foreign(followers_table.c.followed_id) == user_id,
         backref="followers"
     )
+
+    feeds = relationship("Feed", back_populates="user", cascade="all, delete")

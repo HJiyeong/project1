@@ -1,6 +1,7 @@
 package com.example.project1.api
 import com.example.project1.model.CafeInfo
 import com.example.project1.model.CafeList
+import com.example.project1.model.FeedResponse
 import com.example.project1.model.ListChangeNameRequest
 import com.example.project1.model.ListCreateRequest
 import com.example.project1.model.User
@@ -28,6 +29,9 @@ interface ApiService {
 
     @GET("cafes/default")
     suspend fun getDefaultCafes(): List<CafeInfo>
+
+    @GET("users/feeds")
+    suspend fun getFeeds(@Header("Authorization") authHeader: String): List<FeedResponse>
 
     @GET("cafes/{id}")
     suspend fun getCafeById(@Path("id") cafeId: Int): CafeInfo
@@ -59,8 +63,6 @@ interface ApiService {
 
 
 
-
-
     @GET("lists/{list_id}")
     suspend fun getCafeListById(@Path("list_id") listId: Int): CafeList
 
@@ -68,7 +70,7 @@ interface ApiService {
     suspend fun getCafeCandidates(@Path("list_id") listId: Int): List<CafeInfo>
 
     @PUT("lists/{list_id}/set-default-image")
-    suspend fun setDefaultImage(@Body cid: Int): CafeList
+    suspend fun setDefaultImage(@Path("list_id") listId: Int): CafeList
 
     @PUT ("lists/change-name")
     suspend fun changeListName(@Body list: ListChangeNameRequest): CafeList
@@ -78,5 +80,11 @@ interface ApiService {
 
     @POST ("lists/{list_id}/add_cafe")
     suspend fun addCafes(@Path("list_id") listId: Int, @Body cid: Int): Unit
+
+    @GET ("feeds/{feed_id}/comments")
+    suspend fun getComments(@Path("feed_id") feedId: Int): List<String>
+
+    @POST ("feeds/{feed_id}/likes")
+    suspend fun likeFeed(@Path("feed_id") feedId: Int, @Body likes: Boolean): Unit
 }
 
