@@ -51,6 +51,14 @@ interface ApiService {
     @POST("lists")
     suspend fun createCafeList(@Body list: ListCreateRequest): CafeList
 
+    @GET("cafes")
+    suspend fun getAllCafes(): List<CafeInfo>
+
+    @GET("cafes/default")
+    suspend fun getDefaultCafes(): List<CafeInfo>
+
+
+
     @GET("lists/{list_id}")
     suspend fun getCafeListById(@Path("list_id") listId: Int): CafeList
 
@@ -69,3 +77,4 @@ interface ApiService {
     @POST ("lists/{list_id}/add_cafe")
     suspend fun addCafes(@Path("list_id") listId: Int, @Body cid: Int): Unit
 }
+

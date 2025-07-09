@@ -51,12 +51,20 @@ fun SignUpScreen(
         try {
             val request = UserCreateRequest(name = name, email = email, password = password)
             val response = RetrofitClient.apiService.signup(request)
-            signUpFailed = false
-            navController.navigate("login")
+
+            if (response != null) {
+                signUpFailed = false
+                navController.navigate("login")
+            } else {
+                signUpFailed = true
+                android.util.Log.e("SignUp", " 응답이 null이야!")
+            }
         } catch (e: Exception) {
             signUpFailed = true
+            android.util.Log.e("SignUp", " 예외 발생: ${e.message}", e)
         }
     }
+
 
     Column(
         modifier = Modifier
