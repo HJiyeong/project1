@@ -34,6 +34,7 @@ import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.example.project1.model.FeedResponse
 import com.example.project1.network.RetrofitClient
+import com.example.project1.utils.getRandomCafeDrawable
 import com.example.project1.utils.getToken
 import kotlinx.coroutines.launch
 
@@ -254,7 +255,7 @@ fun FeedItem(feed: FeedResponse) {
 
         // 이미지
         AsyncImage(
-            model = imageURL,
+            model = getRandomCafeDrawable(),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxWidth()

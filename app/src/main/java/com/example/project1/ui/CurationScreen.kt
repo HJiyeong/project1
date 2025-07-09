@@ -40,6 +40,7 @@ import com.example.project1.R
 import com.example.project1.model.CafeInfo
 import com.example.project1.model.PromptRequest
 import com.example.project1.network.RetrofitClient
+import com.example.project1.utils.getRandomCafeDrawable
 import com.example.project1.viewmodel.CafeListViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -174,7 +175,7 @@ fun CafeCard(
             .clickable { onClick() }  // ✅ 클릭 이벤트
     ) {
         Image(
-            painter = rememberAsyncImagePainter(cafeInfo.imageURL),
+            painter = rememberAsyncImagePainter(getRandomCafeDrawable()),
             contentDescription = cafeInfo.name,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
@@ -495,7 +496,7 @@ fun RecommendedCafeListByCid(
                 ) {
                     Row(modifier = Modifier.padding(12.dp)) {
                         Image(
-                            painter = rememberAsyncImagePainter(cafe.imageURL),
+                            painter = rememberAsyncImagePainter(getRandomCafeDrawable()),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(80.dp)
@@ -569,7 +570,7 @@ fun HotNowScreen() {
                     Text("더 알아보기 ➔", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
                 }
                 Image(
-                    painter = rememberAsyncImagePainter(top.imageURL),
+                    painter = rememberAsyncImagePainter(getRandomCafeDrawable()),
                     contentDescription = top.name,
                     modifier = Modifier
                         .size(80.dp)
@@ -653,7 +654,7 @@ fun CafeListCardDynamic(title: String, username: String, imageUrl: String) {
             .clip(RoundedCornerShape(16.dp))
     ) {
         Image(
-            painter = rememberAsyncImagePainter(imageUrl),
+            painter = rememberAsyncImagePainter(getRandomCafeDrawable()),
             contentDescription = title,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
@@ -698,7 +699,7 @@ fun RecommendationCardFromCafeInfo(cafe: CafeInfo) {
     ) {
         Column {
             Image(
-                painter = rememberAsyncImagePainter(cafe.imageURL),
+                painter = rememberAsyncImagePainter(getRandomCafeDrawable()),
                 contentDescription = cafe.name,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier

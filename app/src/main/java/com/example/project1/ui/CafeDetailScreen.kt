@@ -29,6 +29,7 @@ import com.example.project1.model.CafeInfo
 import com.example.project1.model.PromptRequest
 import com.example.project1.model.User
 import com.example.project1.network.RetrofitClient
+import com.example.project1.utils.getRandomCafeDrawable
 import com.example.project1.utils.getToken
 import kotlinx.coroutines.launch
 
@@ -79,13 +80,13 @@ fun CafeDetailScreen(
         println("🔍 Decoded Twice (최종 imageUrl): $imageUrl")
     }
 
-    val painter = rememberAsyncImagePainter(model = imageUrl)
+    val painter = rememberAsyncImagePainter(model = getRandomCafeDrawable())
 
 
 
     Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.4f))) {
         Image(
-            painter = rememberAsyncImagePainter(cafeInfo.imageURL),  // 디코딩 없이 그대로
+            painter = rememberAsyncImagePainter(model = getRandomCafeDrawable()),  // 디코딩 없이 그대로
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.zIndex(0f).fillMaxSize()
@@ -329,7 +330,7 @@ fun RelatedCafeView(navController: NavHostController, name: String) {
             ) {
                 Row(modifier = Modifier.padding(12.dp)) {
                     AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current).data(cafe.imageURL),
+                        model = getRandomCafeDrawable(),
                         contentDescription = null,
                         modifier = Modifier
                             .size(80.dp)

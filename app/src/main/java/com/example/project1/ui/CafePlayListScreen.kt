@@ -39,6 +39,7 @@ import com.example.project1.R
 import com.example.project1.model.CafeInfo
 import com.example.project1.model.CafeList
 import com.example.project1.network.RetrofitClient
+import com.example.project1.utils.getRandomCafeDrawable
 import kotlinx.coroutines.launch
 
 @Composable
@@ -85,7 +86,7 @@ fun CafePlayListScreen(
                 .padding(24.dp),
         ) {
             AsyncImage(
-                model = cafeList.imageURL,
+                model = getRandomCafeDrawable(),
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -131,7 +132,7 @@ fun CafePlayListScreen(
                         verticalAlignment = Alignment.CenterVertically
                         ) {
                         AsyncImage(
-                            model = cafe.imageURL,
+                            model = getRandomCafeDrawable(),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(60.dp)

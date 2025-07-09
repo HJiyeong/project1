@@ -36,6 +36,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.LaunchedEffect
 import coil3.request.ImageRequest
 import com.example.project1.network.RetrofitClient
+import com.example.project1.utils.getRandomCafeDrawable
 import com.example.project1.utils.getToken
 
 @Composable
@@ -51,10 +52,7 @@ fun FollowerCafeCard(
             .height(140.dp)
     ){
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(cafeInfo.imageURL)
-                .build()
-            ,
+            model = getRandomCafeDrawable(),
             contentDescription = cafeInfo.name,
             contentScale = ContentScale.Crop,
             modifier = Modifier

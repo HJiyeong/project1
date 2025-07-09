@@ -51,6 +51,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.project1.model.ListChangeNameRequest
 import com.example.project1.model.ListCreateRequest
 import com.example.project1.network.RetrofitClient
+import com.example.project1.utils.getRandomCafeDrawable
 import com.example.project1.utils.getToken
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
@@ -113,6 +114,7 @@ fun Dialog(
                                     ListChangeNameRequest(name = input, cid = id)
                                 )
                                 onDismiss
+                                navController.navigate("mylist")
                             }
                         }
                     },
@@ -141,6 +143,7 @@ fun MyCafeListScreen(
     if (loginUser == null) return
     val user = loginUser!!
 
+    var selectedListIdForRename by remember { mutableStateOf<Int?>(null) }
     var selectedTab by remember { mutableStateOf("내 카페리스트") }
     var expanded by remember { mutableStateOf(false) }
     var createNewList by remember { mutableStateOf(false) }
@@ -227,7 +230,7 @@ fun MyCafeListScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             AsyncImage(
-                                model = cafeList.imageURL,
+                                model = getRandomCafeDrawable(),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
@@ -260,6 +263,7 @@ fun MyCafeListScreen(
                                         text = { Text("이름 변경") },
                                         onClick = {
                                             expandedItemId = cafeList.cid
+                                            selectedListIdForRename = cafeList.cid
                                             changeName = true
                                         }
                                     )
@@ -269,6 +273,7 @@ fun MyCafeListScreen(
                                             coroutineScope.launch {
                                                 RetrofitClient.apiService.deleteList(cafeList.cid)
                                             }
+                                            navController.navigate("mylist")
                                         }
                                     )
                                 }
@@ -297,7 +302,7 @@ fun MyCafeListScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             AsyncImage(
-                                model = cafeInfo.imageURL,
+                                model = getRandomCafeDrawable(),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
@@ -336,23 +341,28 @@ fun MyCafeListScreen(
                     )
                 }
                 if (changeName) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .pointerInput(Unit) {
-                                awaitPointerEventScope {
-                                    while (true) {
-                                        awaitPointerEvent()
+                    selectedListIdForRename?.let { cid ->
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .pointerInput(Unit) {
+                                    awaitPointerEventScope {
+                                        while (true) {
+                                            awaitPointerEvent()
+                                        }
                                     }
                                 }
-                            }
-                    )
-                    Dialog(
-                        navController = navController,
-                        onDismiss = { changeName = false },
-                        id = user.uid,
-                        isCreate = false
-                    )
+                        )
+                        Dialog(
+                            navController = navController,
+                            onDismiss = {
+                                changeName = false
+                                selectedListIdForRename = null
+                            },
+                            id = cid,
+                            isCreate = false
+                        )
+                    }
                 }
             }
         }
