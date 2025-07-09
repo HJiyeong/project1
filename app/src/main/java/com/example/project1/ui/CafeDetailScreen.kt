@@ -2,6 +2,7 @@ package com.example.project1.ui
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -21,6 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import coil3.compose.AsyncImage
 import androidx.navigation.NavHostController
+import coil.request.ImageRequest
+import coil3.compose.rememberAsyncImagePainter
 import com.example.project1.R
 import com.example.project1.model.CafeInfo
 import com.example.project1.model.PromptRequest
@@ -38,40 +41,61 @@ fun CafeDetailScreen(
 
     var selectedTab by remember { mutableStateOf(0) }
     var isLiked by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        isLiked = RetrofitClient.apiService.isFollowingCafe(cafeInfo.cid, token)
-    }
+    //LaunchedEffect(Unit) {
+        //isLiked = RetrofitClient.apiService.isFollowingCafe(cafeInfo.cid, token)
+    //}
 
     val coroutineScope = rememberCoroutineScope()
 
-    val hashtagPrompt =
-        """
-            현재 카페에 대한 해시태그를 4개 작성해 줘.
-            카페 이름은 다음과 같아 : $cafeInfo.name 
-            ** 답변의 형식은 무조건 "#해시태그1 #해시태그2\n#해시태그3 #해시태그4"의 형식으로 작성해야 해.**
-            다음은 가능한 해시태그들의 예시야 : #공부하기 좋은 #카이스트 도보 10분 #의자가 편한 #메뉴가 맛있는 등...
-        """
-    var hashTagResult by remember { mutableStateOf("") }
+    //val hashtagPrompt =
+        //"""
+            //현재 카페에 대한 해시태그를 4개 작성해 줘.
+            //카페 이름은 다음과 같아 : $cafeInfo.name
+            //** 답변의 형식은 무조건 "#해시태그1 #해시태그2\n#해시태그3 #해시태그4"의 형식으로 작성해야 해.**
+            //다음은 가능한 해시태그들의 예시야 : #공부하기 좋은 #카이스트 도보 10분 #의자가 편한 #메뉴가 맛있는 등...
+        //"""
+    //var hashTagResult by remember { mutableStateOf("") }
+    //LaunchedEffect(Unit) {
+        //coroutineScope.launch {
+            //RetrofitClient.apiService.getHashTags(PromptRequest(hashtagPrompt))
+        //}
+    //}
+
+    val hashTagResult = "#분위기 좋은 #자리에 앉기 좋음\n#사진 맛집 #조용한 카페"
+
     LaunchedEffect(Unit) {
-        coroutineScope.launch {
-            RetrofitClient.apiService.getHashTags(PromptRequest(hashtagPrompt))
-        }
+        println("✅ cafeInfo.imageURL: ${cafeInfo.imageURL}")
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-    ) {
-        AsyncImage(
-            model = cafeInfo.imageURL,
+
+    val rawUrl = cafeInfo.imageURL
+    val decodedOnce = java.net.URLDecoder.decode(rawUrl.substringAfter("src="), "UTF-8")
+    val decodedTwice = java.net.URLDecoder.decode(decodedOnce.substringAfter("src="), "UTF-8")
+    val imageUrl = decodedTwice
+
+    LaunchedEffect(Unit) {
+        println("🔍 Raw URL: $rawUrl")
+        println("🔍 Decoded Once: $decodedOnce")
+        println("🔍 Decoded Twice (최종 imageUrl): $imageUrl")
+    }
+
+    val painter = rememberAsyncImagePainter(model = imageUrl)
+
+
+
+    Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.4f))) {
+        Image(
+            painter = rememberAsyncImagePainter(cafeInfo.imageURL),  // 디코딩 없이 그대로
             contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.zIndex(0f).fillMaxSize()
+
         )
+
 
         Box(
             modifier = Modifier
+                .zIndex(1f)
                 .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(
@@ -80,10 +104,19 @@ fun CafeDetailScreen(
                 )
         )
 
-        Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Icon(Icons.Default.Close, contentDescription = "닫기", tint = Color.White,
-                    modifier = Modifier.size(32.dp).clickable { navController.popBackStack() })
+        Column(modifier = Modifier.zIndex(2f).fillMaxSize().padding(24.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "닫기",
+                    tint = Color.White,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clickable { navController.popBackStack() }
+                )
                 Icon(
                     imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                     contentDescription = "Like",
@@ -101,14 +134,44 @@ fun CafeDetailScreen(
 
             Spacer(modifier = Modifier.height(100.dp))
 
+            var searchQuery by remember { mutableStateOf("") }
+
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = { Text("검색어를 입력하세요") },
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White.copy(alpha = 0.1f), shape = RoundedCornerShape(8.dp))
+                    .border(1.dp, Color.White.copy(alpha = 0.3f), shape = RoundedCornerShape(8.dp)),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    disabledTextColor = Color.Gray,
+                    cursorColor = Color.White,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.White,
+                    unfocusedIndicatorColor = Color.White.copy(alpha = 0.4f),
+                    disabledIndicatorColor = Color.Gray
+                )
+
+
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Text(cafeInfo.name, fontSize = 22.sp, color = Color.White, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                if (hashTagResult.isNotEmpty()) hashTagResult else "",
-                color = Color.White, fontSize = 14.sp)
+            Text(hashTagResult, color = Color.White, fontSize = 14.sp)
             Spacer(modifier = Modifier.height(36.dp))
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
                 listOf("위치 보기", "카페 정보", "관련 카페").forEachIndexed { index, label ->
                     Button(
                         onClick = { selectedTab = index },
@@ -126,56 +189,103 @@ fun CafeDetailScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
-                    .background(Color.Black.copy(alpha = 0.6f))
+                    .fillMaxHeight(0.7f)  // ✅ 하단 1/3만 차지
+                    .background(Color.Black.copy(alpha = 0.4f))
                     .padding(16.dp)
             ) {
-                when (selectedTab) {
-                    0 -> LocationView(cafeInfo.shortAddress)
-                    1 -> CafeInformation(cafeInfo.cafeIntroduce)
-                    2 -> RelatedCafeView(navController, cafeInfo.name)
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    when (selectedTab) {
+                        0 -> LocationView(
+                            address = cafeInfo.shortAddress,
+                            naverMapUrl = cafeInfo.cafeURL
+                        )
+                        1 -> CafeInformation(
+                            introduce = cafeInfo.cafeIntroduce,
+                            amenities = cafeInfo.amenities
+                        )
+                        2 -> RelatedCafeView(navController, cafeInfo.name)
+                    }
                 }
             }
+
         }
     }
 }
 
 @Composable
-fun LocationView(location: String) {
+fun LocationView(address: String, naverMapUrl: String) {
+    val context = LocalContext.current
+
     Column {
         Text("📍 위치 정보", color = Color.White, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(8.dp))
-        Text(location, color = Color.White)
-        Text("영업 종료 11:00에 영업 시작", color = Color.White)
-        Spacer(modifier = Modifier.height(8.dp))
-        Image(
-            painter = painterResource(id = R.drawable.navermap_sample),
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(150.dp),
-            contentScale = ContentScale.Crop
-        )
+        Text(address, color = Color.White)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW)
+                intent.data = android.net.Uri.parse(naverMapUrl)
+                context.startActivity(intent)
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF4E342E), // 브라운 톤
+                contentColor = Color.White
+            ),
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp) // 조금 더 세련되게
+        ) {
+            Text("네이버 지도로 열기")
+        }
+
     }
 }
 
+
 @Composable
-fun CafeInformation(information: String) {
+fun CafeInformation(introduce: String?, amenities: String?) {
+    val noInfo = introduce.isNullOrBlank() && amenities.isNullOrBlank()
+
     Column {
         Text("☕️ 카페 정보:", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.White)
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = information,
-            color = Color.White,
-            fontSize = 14.sp,
-            lineHeight = 22.sp,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(4.dp)
-        )
+        if (noInfo) {
+            Text(
+                text = "정보가 없습니다.",
+                color = Color.White.copy(alpha = 0.6f),
+                fontSize = 14.sp
+            )
+        } else {
+            if (!introduce.isNullOrBlank()) {
+                Text(
+                    text = introduce,
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    lineHeight = 22.sp,
+                    modifier = Modifier.fillMaxWidth().padding(4.dp)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            if (!amenities.isNullOrBlank()) {
+                Text(
+                    text = "📌 추가 서비스",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = Color.White
+                )
+                Text(
+                    text = amenities,
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 4.dp)
+                )
+            }
+        }
     }
 }
+
 
 @Composable
 fun RelatedCafeView(navController: NavHostController, name: String) {

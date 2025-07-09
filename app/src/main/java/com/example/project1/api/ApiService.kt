@@ -23,6 +23,12 @@ interface ApiService {
     suspend fun followUser(@Path("id") userId: Int, @Header("Authorization") authHeader: String)
     : Response<Unit>
 
+    @GET("cafes")
+    suspend fun getAllCafes(): List<CafeInfo>
+
+    @GET("cafes/default")
+    suspend fun getDefaultCafes(): List<CafeInfo>
+
     @GET("cafes/{id}")
     suspend fun getCafeById(@Path("id") cafeId: Int): CafeInfo
 
@@ -51,11 +57,7 @@ interface ApiService {
     @POST("lists")
     suspend fun createCafeList(@Body list: ListCreateRequest): CafeList
 
-    @GET("cafes")
-    suspend fun getAllCafes(): List<CafeInfo>
 
-    @GET("cafes/default")
-    suspend fun getDefaultCafes(): List<CafeInfo>
 
 
 

@@ -19,7 +19,5 @@ backend/__pycache__/
 backend/*.db
 backend/.mypy_cache/
 backend/.pytest_cache/
-backend/app/utils/openai_client.py
 backend/app/utils/__pycache__/
-
 backend/.env

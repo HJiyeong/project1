@@ -1,4 +1,7 @@
 package com.example.project1.ui
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -8,6 +11,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -28,13 +33,17 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil.compose.rememberAsyncImagePainter
 import com.example.project1.R
 import com.example.project1.model.CafeInfo
 import com.example.project1.model.PromptRequest
 import com.example.project1.network.RetrofitClient
+import com.example.project1.viewmodel.CafeListViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.lifecycle.ViewModel as ViewModel
 
 data class CafeItem(
     val title: String,
@@ -146,6 +155,79 @@ fun RecommendationCard(item: Recommendation) {
         }
     }
 }
+@Composable
+fun CafeCard(
+    cafeInfo: CafeInfo,
+    onClick: () -> Unit
+) {
+    val gradientBrush = Brush.verticalGradient(
+        colors = listOf(
+            Color.Transparent,
+            Color(0x994E342E),  // 중간 정도
+            Color(0xFF4E342E)   // 완전 진한 갈색
+
+        ),
+        startY = 200f,
+        endY = 600f
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .height(200.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onClick() }  // ✅ 클릭 이벤트
+    ) {
+        Image(
+            painter = rememberAsyncImagePainter(cafeInfo.imageURL),
+            contentDescription = cafeInfo.name,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(gradientBrush)
+        )
+
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = cafeInfo.name,
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = cafeInfo.shortAddress,
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontSize = 13.sp
+                )
+            }
+
+            IconButton(
+                onClick = { /* TODO: 저장 기능 */ },
+                modifier = Modifier.padding(start = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.BookmarkBorder,
+                    contentDescription = "저장",
+                    tint = Color.White
+                )
+            }
+        }
+    }
+}
+
+
 
 
 @Composable
@@ -161,6 +243,9 @@ fun CurationScreen(
 
     val beige = colorResource(R.color.beige)
     val brown = Color(0xFF7A4E2D)
+    val viewModel: CafeListViewModel = viewModel()
+    val defaultCafes by viewModel.defaultCafes.collectAsState()
+
 
     Scaffold(
         topBar = {
@@ -170,6 +255,7 @@ fun CurationScreen(
             BottomTabs(navController = navController, selectedTab) { selectedTab = it }
         }
     ) { innerPadding ->
+
         Column(
             modifier = modifier
                 .fillMaxSize()
@@ -194,13 +280,14 @@ fun CurationScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
-
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 listOf("전체 검색", "맞춤형", "요즘 핫한").forEach { label ->
                     Button(
                         onClick = { selectedFilter = label },
-                        colors = ButtonDefaults.buttonColors(containerColor = if (label == selectedFilter) brown else Color.Transparent),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (label == selectedFilter) brown else Color.Transparent
+                        ),
                         shape = RoundedCornerShape(30.dp),
                         border = BorderStroke(1.dp, brown),
                         modifier = Modifier
@@ -217,116 +304,45 @@ fun CurationScreen(
                 }
             }
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth() // ✅ 가로 전체 채우기
-                    .border(
-                        width = 2.dp,
-                        color = Color(0xFF834D1E),
-                        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
-                    ) // ✅ 갈색 테두리
-                    .background(
-                        color = Color(0xFFF8E3B6),
-                        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
-                    )
-                    .padding(horizontal = 16.dp, vertical = 20.dp)
-            ) {
-                when (selectedFilter) {
-                    "전체 검색" -> {
-                        Column {
-                            val coroutineScope = rememberCoroutineScope()
-                            OutlinedTextField(
-                                value = searchText,
-                                onValueChange = { searchText = it },
-                                placeholder = { Text("카페를 검색해보세요...") },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp),
-                                singleLine = true,
-                                shape = RoundedCornerShape(16.dp),
-                                trailingIcon = {
-                                    Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier
-                                        .clickable(onClick = {
-                                            prompt =
-                                                """
-                                                검색 키워드 $searchText 를 바탕으로, 조건에 맞는 카페 상위 15개를 추천해 줘.
-                                                **답변은 무조건 네이버 지도 상에 실제 존재하는 카페 상호명을 기준으로,
-                                                "이름1, 이름2, 이름3, 이름4, ..." 와 같은 형식으로 출력해 줘.**
-                                                """
-                                            coroutineScope.launch {
-                                                promptResult = RetrofitClient.apiService.recommendCafes(PromptRequest(prompt))
-                                            }
-                                            val recommendedCafes = promptResult!!
-                                            recommendedCafes.forEach { cafe ->
-                                                // 이거 밑에 있는 카페 추천 결과랑 똑같이 띄우면 될 것 같아.
-                                            }
-                                        }))
-                                }
-                            )
+            // 기본 카페 목록 불러오기 (디버깅)
+            LaunchedEffect(Unit) {
+                println("✅ fetchDefaultCafes 호출 전")
+                viewModel.fetchDefaultCafes()
+                println("✅ fetchDefaultCafes 호출 완료, 값: ${viewModel.defaultCafes.value}")
+            }
 
-                            val cafeList = listOf(
-                                CafeItem("XXXXXX카페", listOf("#공부하기 좋은", "#조용한", "#2층"), "13",R.drawable.img_cafe_sample1),
-                                CafeItem("XXXXXX 카페", listOf("#디저트가 맛있는", "#감성있는", "#고양이가 있는"), "4",R.drawable.img_cafe_sample2),
-                                CafeItem("XXXXX 카페", listOf("#데이트 하기 좋은", "#아늑한", "#주차장 있는"), "0",R.drawable.img_cafe_sample3),
-                                CafeItem("XXXXXX 카페", listOf("#달달한 디저트", "#조용한", "#예쁜 조명"), "7",R.drawable.img_cafe_sample4),
-                                CafeItem("XXXXXXX 카페", listOf("#브런치 맛집", "#햇살 좋은", "#루프탑"), "5",R.drawable.img_cafe_sample5),
-                                CafeItem("XXXXX 카페", listOf("#인테리어 감성", "#빈티지 소품", "#셀카 맛집"), "9",R.drawable.img_cafe_sample6),
-                                CafeItem("XXXXX 카페", listOf("#콘센트 많음", "#스터디룸 있음", "#조용한"), "2",R.drawable.img_cafe_sample7),
-                            )
-
-                            cafeList.forEach { cafe ->
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            navController.navigate("cafeDetail")
-                                        }
-                                        .padding(vertical = 8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Image(
-                                        painter = painterResource(id = cafe.imageRes),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(60.dp)
-                                            .clip(RoundedCornerShape(8.dp)),
-                                        contentScale = ContentScale.Crop
-                                    )
-
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(cafe.title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                        cafe.tags.forEach {
-                                            Text(text = it, fontSize = 12.sp, color = Color.DarkGray)
-                                        }
-                                    }
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text(cafe.count, fontSize = 12.sp, color = Color.DarkGray)
-                                        IconButton(onClick = { }) {
-                                            Icon(Icons.Rounded.BookmarkBorder, contentDescription = "Save", tint = brown)
-                                        }
-                                    }
-                                }
+            // ✅ 조건에 따라 카페 리스트 보여주기
+            when (selectedFilter) {
+                "전체 검색" -> {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    ) {
+                        items(defaultCafes) { cafe ->
+                            CafeCard(cafeInfo = cafe) {
+                                navController.navigate("cafeDetail/${cafe.cid}")
                             }
-
                         }
-                    }
-
-                    "맞춤형" -> {
-                        PersonalizedQuestionStack()
-                    }
-
-
-                    "요즘 핫한" -> {
-                        HotNowScreen()
-
 
                     }
+                }
+
+                "맞춤형" -> {
+                    // TODO: 맞춤형 질문 리스트 표시
+                    PersonalizedQuestionStack()
+                }
+
+                "요즘 핫한" -> {
+                    // TODO: 핫한 카페 리스트 뷰
+                    HotNowScreen()
                 }
             }
         }
     }
-}
+
+    }
+
 
 
 

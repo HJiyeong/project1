@@ -17,6 +17,9 @@ def create_cafe(cafe: CafeCreate, db: Session = Depends(get_db)):
     db.refresh(db_cafe)
     return db_cafe
 '''
+@router.get("/default", response_model=list[CafeResponse])
+def get_default_cafes(db: Session = Depends(get_db)):
+    return db.query(Cafe).limit(20).all()
 
 @router.get("/", response_model=list[CafeResponse])
 def get_cafes(db: Session = Depends(get_db)):
@@ -45,6 +48,3 @@ def recommend_cafes(prompt: PromptRequest, db: Session = Depends(get_db)):
 def get_hashtag(prompt: PromptRequest):
     return get_cafe_hashtags(prompt.prompt)
 
-@router.get("/default", response_model=list[CafeResponse])
-def get_default_cafes(db: Session = Depends(get_db)):
-    return db.query(Cafe).limit(20).all()

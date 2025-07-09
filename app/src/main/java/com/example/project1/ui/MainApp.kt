@@ -27,16 +27,20 @@ fun MainApp() {
         composable("setting") { Setting(navController) }
         composable("info") { Profile(navController) }
         composable("add_follower") { AddFollower(navController) }
+
         composable("cafeDetail/{cid}") { backStackEntry ->
             val cid = backStackEntry.arguments?.getString("cid")!!.toInt()
             var cafe by remember { mutableStateOf<CafeInfo?>(null) }
+
             LaunchedEffect(cid) {
                 cafe = RetrofitClient.apiService.getCafeById(cid)
             }
-            cafe?.let { cafe ->
-                CafeDetailScreen(navController, cafe)
+
+            cafe?.let {
+                CafeDetailScreen(navController, it)
             }
         }
+
         composable("addcafetoplaylist/{cid}") { backStackEntry ->
             val cid = backStackEntry.arguments?.getString("cid")!!.toInt()
             AddCafeToListScreen(navController, cid) }

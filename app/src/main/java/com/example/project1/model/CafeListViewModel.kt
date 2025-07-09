@@ -25,12 +25,14 @@ class CafeListViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val cafes = api.getDefaultCafes()
+                Log.d("CafeViewModel", "✅ 가져온 기본 카페 수: ${cafes.size}")
                 _defaultCafes.value = cafes
             } catch (e: Exception) {
-                Log.e("CafeViewModel", "기본 카페 목록 가져오기 실패", e)
+                Log.e("CafeViewModel", "❌ 기본 카페 목록 가져오기 실패", e)
             }
         }
     }
+
 
     fun fetchAllCafes() {
         viewModelScope.launch {
