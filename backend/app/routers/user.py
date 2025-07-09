@@ -68,12 +68,13 @@ def follow_cafe(cafe_id: int, follower: User = Depends(get_current_user), db: Se
 
 @router.get("/feeds", response_model=list[FeedResponse])
 def show_feeds(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    follower_ids = [follower.user_id for follower in user.followers]
+    following_ids = [followed.user_id for followed in user.follows]
+    following_ids.append(user.user_id)
     
     feeds = (
         db.query(Feed)
         .options(joinedload(Feed.user), joinedload(Feed.cafe))
-        .filter(Feed.user_id.in_(follower_ids))
+        .filter(Feed.user_id.in_(following_ids))
         .order_by(Feed.created_at.desc())
         .limit(10)
         .all()
